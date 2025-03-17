@@ -14,7 +14,7 @@
                 },
                 {
                     "component": "text",
-                    "output": "Dashboard UI Available At:\n\nhttps://juju.example.com/dashboard"
+                    "output": "Dashboard UI Available At:\n\n\\u001b[4mhttps://juju.example.com/dashboard\\u001b[0m"
                 },
                 {
                     "component": "text",
