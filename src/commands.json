@@ -17,7 +17,7 @@
               "Juju dashboard UI link"
             ],
             [
-              "*localhost/controller1*"
+              "\u001b[4mlocalhost/controller1\u001b[0m"
             ]
           ],
           "colWidths": [
