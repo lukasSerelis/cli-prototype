@@ -1,30 +1,26 @@
 {
-  "welcome": "Welcome to My CLI! Type 'help' for available commands.",
-  "commands": {
-    "juju ui": {
-      "description": "Generates link to view dashboard of this resource",
-      "handler": [
-        {
-          "component": "spinner",
-          "output": " Generating UI link...",
-          "duration": 1000,
-          "conclusion": "succeed"
-        },
-        {
-          "component": "table",
-          "output": [
-            [
-              "Juju dashboard UI link"
-            ],
-            [
-              "\u001b[4mlocalhost/controller1\u001b[0m"
+    "welcome": "Welcome to Juju CLI. Type 'help' for command list",
+    "variables": {
+        "isLoggedIn": "true"
+    },
+    "commands": {
+        "ui": {
+            "description": "Launch the Juju web UI dashboard",
+            "handler": [
+                {
+                    "component": "spinner",
+                    "output": "Loading Juju Dashboard UI...",
+                    "duration": 1500
+                },
+                {
+                    "component": "text",
+                    "output": "Dashboard UI Available At:\n\nhttps://juju.example.com/dashboard"
+                },
+                {
+                    "component": "text",
+                    "output": "\nYou can access the full Juju Dashboard at the URL above."
+                }
             ]
-          ],
-          "colWidths": [
-            100
-          ]
         }
-      ]
     }
-  }
 }
