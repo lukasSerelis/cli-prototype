@@ -174,9 +174,9 @@
                                 "output": [
                                     ["Use Juju Dashboard UI using link"],
                                     [
-                                        "yourdomai.juju.com/controler123"
+                                        "yourdomain.juju.com/controler123"
                                 ]
-                            }
+                            },
                         ],
                         "else": {
                             "component": "text",
