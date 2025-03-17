@@ -156,7 +156,7 @@
                 }
             }
         },
-        "list": {
+        "juju --ui": {
             "description": "List all tasks",
             "handler": [
                 {
