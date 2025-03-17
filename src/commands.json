@@ -4,7 +4,7 @@
         "isLoggedIn": "true"
     },
     "commands": {
-        "ui": {
+        "juju ui": {
             "description": "Launch the Juju web UI dashboard",
             "handler": [
                 {
