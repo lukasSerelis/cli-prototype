@@ -2,7 +2,7 @@
   "welcome": "Welcome to My CLI! Type 'help' for available commands.",
   "commands": {
     "juju ui": {
-      "description": "",
+      "description": "Generates link to view dashboard of this resource",
       "handler": [
         {
           "component": "spinner",
