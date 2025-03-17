@@ -16,7 +16,7 @@
                     "component": "table",
                     "output": [
                         ["Dashboard UI Available At:"],
-                        ["\\u001b[4mhttps://juju.example.com/dashboard/controller1\\u001b[0m"]
+                        ["https://juju.example.com/dashboard/controller1"]
                     ],
                     "colWidths": [60]
                 },
