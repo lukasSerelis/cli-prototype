@@ -172,9 +172,9 @@
                             {
                                 "component": "table",
                                 "output": [
-                                    ["Use Juju Dashboard UI using link"],
+                                    ["Juju Dashboard UI using link"],
                                     [
-                                        "yourdomain.juju.com/controler123"
+                                        "domain.juju.com/contrl3"
                                     ]
                                 ]
                             }
