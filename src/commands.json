@@ -1,7 +1,7 @@
 {
-    "welcome": "Welcome to TaskTrack CLI! Type 'help' to see available commands.",
+    "welcome": "Welcome to Juju CLI. Write help for command list",
     "variables": {
-        "isLoggedIn": "false"
+        "isLoggedIn": "true"
     },
     "commands": {
         "login": {
@@ -166,26 +166,15 @@
                         "then": [
                             {
                                 "component": "spinner",
-                                "output": "Fetching tasks...",
+                                "output": "Loading UI...",
                                 "duration": 1000
                             },
                             {
                                 "component": "table",
                                 "output": [
-                                    ["ID", "Task", "Priority", "Status"],
+                                    ["Use Juju Dashboard UI using link"],
                                     [
-                                        "1",
-                                        "Implement login",
-                                        "High",
-                                        "In Progress"
-                                    ],
-                                    ["2", "Create task list", "Medium", "Todo"],
-                                    [
-                                        "3",
-                                        "Add task prioritization",
-                                        "Low",
-                                        "Completed"
-                                    ]
+                                        "yourdomai.juju.com/controler123"
                                 ]
                             }
                         ],
