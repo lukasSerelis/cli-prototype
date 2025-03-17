@@ -175,8 +175,9 @@
                                     ["Use Juju Dashboard UI using link"],
                                     [
                                         "yourdomain.juju.com/controler123"
+                                    ]
                                 ]
-                            },
+                            }
                         ],
                         "else": {
                             "component": "text",
