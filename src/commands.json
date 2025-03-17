@@ -14,7 +14,10 @@
           "component": "table",
           "output": [
             [
-              "Juju Dashboard UI link"
+              "Juju UI link"
+            ],
+            [
+              "\u001b[4mmydomain.juju.ui/controller122/modelA\u001b[0m"
             ]
           ],
           "colWidths": [
