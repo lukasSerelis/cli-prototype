@@ -6,7 +6,7 @@
       "handler": [
         {
           "component": "spinner",
-          "output": "Generating UI link",
+          "output": " Generating UI link...",
           "duration": 1000,
           "conclusion": "succeed"
         },
