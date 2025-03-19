@@ -302,55 +302,85 @@ export default class LocalEchoController extends EventEmitter {
         this.term.write(ansiEscapes.clearTerminal)
     }
 
-    /**
-     * Replace input with the new input given
-     * 
-     * This function efficiently updates the display with the new input.
-     */
-    setInput(newInput, clearInput = true) {
-        // Skip redundant redraws if the input hasn't changed
-        if (this._input === newInput && this._input !== "") {
-            return;
-        }
-
-        // Clear current input
-        if (clearInput) this.clearInput()
-
-        // Write the new input lines, including the current prompt
-        const newPrompt = this.applyPrompts(newInput)
-        this.print(newPrompt)
-
-        // Trim cursor overflow
-        if (this._cursor > newInput.length) {
-            this._cursor = newInput.length
-        }
-
-        // Calculate cursor position coordinates
-        const newCursor = this.applyPromptOffset(newInput, this._cursor)
-        const { col, row } = offsetToColRow(
-            newPrompt,
-            newCursor,
-            this._termSize.cols
-        )
-
-        // Calculate how many rows up we need to move
-        const totalRows = countLines(newPrompt, this._termSize.cols)
-        const moveUpRows = totalRows - row - 1
-
-        // Position cursor efficiently
-        this.term.write("\r") // Move to start of line
-        
-        if (moveUpRows > 0) {
-            this.term.write(`\x1B[${moveUpRows}A`) // Move up required rows
-        }
-        
-        if (col > 0) {
-            this.term.write(`\x1B[${col}C`) // Move right required columns
-        }
-
-        // Update input state
-        this._input = newInput
+   /**
+ * Replace input with the new input given
+ * 
+ * This function efficiently updates the display with the new input.
+ */
+setInput(newInput, clearInput = true) {
+    // Skip redundant redraws if the input hasn't changed
+    if (this._input === newInput && this._input !== "") {
+        return;
     }
+
+    // Store current cursor position for later reference
+    const oldCursor = this._cursor;
+    
+    // Clear current input
+    if (clearInput) this.clearInput();
+
+    // Write the new input lines, including the current prompt
+    const newPrompt = this.applyPrompts(newInput);
+    this.print(newPrompt);
+
+    // Trim cursor overflow
+    if (this._cursor > newInput.length) {
+        this._cursor = newInput.length;
+    }
+
+    // Calculate cursor position coordinates
+    const newCursor = this.applyPromptOffset(newInput, this._cursor);
+    const { col, row } = offsetToColRow(
+        newPrompt,
+        newCursor,
+        this._termSize.cols
+    );
+
+    // Calculate how many rows up we need to move
+    const totalRows = countLines(newPrompt, this._termSize.cols);
+    const moveUpRows = totalRows - row - 1;
+
+    // Save cursor position adjustment for next operation
+    this._lastCursorPosition = { col, row, moveUpRows };
+    
+    // Don't reposition cursor if we're just typing at the end
+    // This prevents the cursor jumping to the beginning of the line
+    if (oldCursor === this._input.length - 1 && this._cursor === newInput.length && !clearInput) {
+        // Just update input state
+        this._input = newInput;
+        return;
+    }
+
+    // Position cursor using absolute coordinates
+    this.setCursorPosition(col, row, moveUpRows);
+
+    // Update input state
+    this._input = newInput;
+}
+
+/**
+ * Helper method to position cursor accurately without flickering
+ */
+setCursorPosition(col, row, moveUpRows) {
+    // For single-line inputs with cursor at end, no need to reposition
+    if (moveUpRows === 0 && col === this._termSize.cols - 1) {
+        return;
+    }
+    
+    // Use absolute positioning for more complex cases
+    // First go to the beginning of current line
+    this.term.write("\r");
+    
+    // Move up required rows 
+    if (moveUpRows > 0) {
+        this.term.write(`\x1B[${moveUpRows}A`);
+    }
+    
+    // Move right required columns
+    if (col > 0) {
+        this.term.write(`\x1B[${col}C`);
+    }
+}
 
     /**
      * This function completes the current input, calls the given callback
@@ -380,57 +410,73 @@ export default class LocalEchoController extends EventEmitter {
     }
 
     /**
-     * Set the new cursor position, as an offset on the input string
-     */
-    setCursor(newCursor) {
-        if (newCursor < 0) newCursor = 0
-        if (newCursor > this._input.length) newCursor = this._input.length
+ * Set the new cursor position, as an offset on the input string
+ */
+setCursor(newCursor) {
+    if (newCursor < 0) newCursor = 0;
+    if (newCursor > this._input.length) newCursor = this._input.length;
 
-        // Skip if cursor position didn't change
-        if (this._cursor === newCursor) return
+    // Skip if cursor position didn't change
+    if (this._cursor === newCursor) return;
 
-        // Apply prompt formatting to get the visual status of the display
-        const inputWithPrompt = this.applyPrompts(this._input)
+    // Apply prompt formatting to get the visual status of the display
+    const inputWithPrompt = this.applyPrompts(this._input);
 
-        // Get current cursor position
-        const promptCursor = this.applyPromptOffset(this._input, this._cursor)
-        const { col: currentCol, row: currentRow } = offsetToColRow(
-            inputWithPrompt,
-            promptCursor,
-            this._termSize.cols
-        )
+    // Get current cursor position
+    const promptCursor = this.applyPromptOffset(this._input, this._cursor);
+    const { col: currentCol, row: currentRow } = offsetToColRow(
+        inputWithPrompt,
+        promptCursor,
+        this._termSize.cols
+    );
 
-        // Get target cursor position
-        const newPromptOffset = this.applyPromptOffset(this._input, newCursor)
-        const { col: targetCol, row: targetRow } = offsetToColRow(
-            inputWithPrompt,
-            newPromptOffset,
-            this._termSize.cols
-        )
+    // Get target cursor position
+    const newPromptOffset = this.applyPromptOffset(this._input, newCursor);
+    const { col: targetCol, row: targetRow } = offsetToColRow(
+        inputWithPrompt,
+        newPromptOffset,
+        this._termSize.cols
+    );
 
-        // Use absolute cursor positioning to reduce flickering
-        this.term.write("\r") // Move to beginning of line
+    // If cursor moves within the same line and by only one position,
+    // use simpler movement to prevent jarring visual effects
+    if (currentRow === targetRow && Math.abs(currentCol - targetCol) === 1) {
+        if (currentCol > targetCol) {
+            this.term.write('\b'); // Simple backspace
+        } else {
+            // Moving one position forward - no need to do anything as cursor
+            // automatically advances with output
+        }
+    } else {
+        // Use absolute cursor positioning for more complex movements
         
-        // Handle vertical movement
-        if (targetRow !== currentRow) {
-            // If going up
+        // Only use \r if we're not jumping to another row
+        if (currentRow !== targetRow) {
+            this.term.write("\r"); // Move to beginning of line
+            
+            // Handle vertical movement
             if (targetRow < currentRow) {
-                this.term.write(`\x1B[${currentRow - targetRow}A`)
-            } 
-            // If going down
-            else {
-                this.term.write(`\x1B[${targetRow - currentRow}B`)
+                this.term.write(`\x1B[${currentRow - targetRow}A`);
+            } else {
+                this.term.write(`\x1B[${targetRow - currentRow}B`);
             }
+        } else if (targetCol < currentCol) {
+            // If we're moving backwards on the same line
+            this.term.write(`\x1B[${currentCol - targetCol}D`);
+        } else {
+            // If we're moving forwards on the same line
+            this.term.write(`\x1B[${targetCol - currentCol}C`);
         }
         
-        // Handle horizontal movement
-        if (targetCol > 0) {
-            this.term.write(`\x1B[${targetCol}C`)
+        // Handle final horizontal positioning if needed after a row change
+        if (currentRow !== targetRow && targetCol > 0) {
+            this.term.write(`\x1B[${targetCol}C`);
         }
-
-        // Update cursor state
-        this._cursor = newCursor
     }
+
+    // Update cursor state
+    this._cursor = newCursor;
+}
 
     /**
      * Move cursor at given direction
@@ -528,15 +574,26 @@ export default class LocalEchoController extends EventEmitter {
             : null
     }
 
-    /**
-     * Insert character at cursor location
-     */
-    handleCursorInsert(data) {
-        const { _cursor, _input } = this
-        const newInput = _input.substr(0, _cursor) + data + _input.substr(_cursor)
-        this._cursor += data.length
-        this.setInput(newInput)
+   /**
+ * Insert character at cursor location
+ */
+handleCursorInsert(data) {
+    const { _cursor, _input } = this;
+    const newInput = _input.substr(0, _cursor) + data + _input.substr(_cursor);
+    
+    // Optimize typing at the end of input - common case
+    if (_cursor === _input.length) {
+        // Just append the character instead of redrawing everything
+        this.term.write(data);
+        this._input = newInput;
+        this._cursor += data.length;
+        return;
     }
+    
+    // For other cases, use normal handling
+    this._cursor += data.length;
+    this.setInput(newInput);
+}
 
     /**
      * Handle input completion
