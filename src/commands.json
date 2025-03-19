@@ -1,5 +1,9 @@
 {
   "welcome": "Welcome to Juju CLI! Type 'help' to see available commands.",
+  "variables": {
+    "controller": "",
+    "model": ""
+  },
   "commands": {
     "juju": {
       "description": "Execute juju commands",
@@ -9,7 +13,7 @@
           "handler": [
             {
               "component": "select",
-              "name": "controller",
+              "name": "chosenController",
               "message": "Select a controller:",
               "choices": [
                 {
@@ -31,8 +35,14 @@
               ]
             },
             {
+              "component": "variable",
+              "output": {
+                "controller": "{{chosenController}}"
+              }
+            },
+            {
               "component": "select",
-              "name": "model",
+              "name": "chosenModel",
               "message": "Select a model:",
               "choices": [
                 {
@@ -54,6 +64,12 @@
               ]
             },
             {
+              "component": "variable",
+              "output": {
+                "model": "{{chosenModel}}"
+              }
+            },
+            {
               "component": "spinner",
               "output": [
                 "Connecting to {{controller}}",
@@ -65,35 +81,19 @@
             {
               "component": "table",
               "output": [
-                [
-                  "Juju Dashboard UI"
-                ],
-                [
-                  "https://{{controller}}.juju.io/{{model}}"
-                ]
+                ["Juju Dashboard UI", "Details"],
+                ["Controller", "{{controller}}"],
+                ["Model", "{{model}}"],
+                ["URL", "https://{{controller}}.juju.io/{{model}}"]
               ]
+            },
+            {
+              "component": "text",
+              "output": "✅ Juju Dashboard URL successfully generated!"
             }
           ]
         }
       }
-    },
-    "hello": {
-      "description": "Execute juju command",
-      "handler": [
-        {
-          "component": "text",
-          "output": "Hello there! What's your name?"
-        },
-        {
-          "component": "input",
-          "name": "userName",
-          "message": "My name is..."
-        },
-        {
-          "component": "text",
-          "output": "Hello there {{userName}}! Nice to meet you!"
-        }
-      ]
     }
   }
 }
