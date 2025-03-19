@@ -286,17 +286,16 @@ export default class LocalEchoController extends EventEmitter {
             this._termSize.cols
         )
 
-        // First move on the last line
-        const moveRows = allRows - row - 1
-        for (var i = 0; i < moveRows; ++i)
-            this.term.write(ansiEscapes.cursorNextLine)
-
-        // Clear current input line(s)
-        this.term.write(ansiEscapes.cursorLeft + ansiEscapes.eraseEndLine)
-        for (var i = 1; i < allRows; ++i)
-            this.term.write(
-                ansiEscapes.cursorPrevLine + ansiEscapes.eraseEndLine
-            )
+        // Move cursor to the beginning of the line
+        this.term.write("\r")
+        
+        // Move cursor up to the beginning of the prompt
+        if (row > 0) {
+            this.term.write(`\x1B[${row}A`)
+        }
+        
+        // Clear all lines using a more efficient approach
+        this.term.write("\x1B[J")
     }
 
     clearTerminal() {
@@ -305,17 +304,20 @@ export default class LocalEchoController extends EventEmitter {
 
     /**
      * Replace input with the new input given
-     *
-     * This function clears all the lines that the current input occupies and
-     * then replaces them with the new input.
+     * 
+     * This function efficiently updates the display with the new input.
      */
     setInput(newInput, clearInput = true) {
+        // Skip redundant redraws if the input hasn't changed
+        if (this._input === newInput && this._input !== "") {
+            return;
+        }
+
         // Clear current input
         if (clearInput) this.clearInput()
 
         // Write the new input lines, including the current prompt
         const newPrompt = this.applyPrompts(newInput)
-
         this.print(newPrompt)
 
         // Trim cursor overflow
@@ -323,25 +325,30 @@ export default class LocalEchoController extends EventEmitter {
             this._cursor = newInput.length
         }
 
-        // Move the cursor to the appropriate row/col
+        // Calculate cursor position coordinates
         const newCursor = this.applyPromptOffset(newInput, this._cursor)
-        const newLines = countLines(newPrompt, this._termSize.cols)
-
         const { col, row } = offsetToColRow(
             newPrompt,
             newCursor,
             this._termSize.cols
         )
 
-        const moveUpRows = newLines - row - 1
+        // Calculate how many rows up we need to move
+        const totalRows = countLines(newPrompt, this._termSize.cols)
+        const moveUpRows = totalRows - row - 1
 
-        this.term.write(ansiEscapes.cursorLeft)
-        for (var i = 0; i < moveUpRows; ++i)
-            this.term.write(ansiEscapes.cursorPrevLine)
+        // Position cursor efficiently
+        this.term.write("\r") // Move to start of line
+        
+        if (moveUpRows > 0) {
+            this.term.write(`\x1B[${moveUpRows}A`) // Move up required rows
+        }
+        
+        if (col > 0) {
+            this.term.write(`\x1B[${col}C`) // Move right required columns
+        }
 
-        if (col !== 0) this.term.write(ansiEscapes.cursorForward(col))
-
-        // Replace input
+        // Update input state
         this._input = newInput
     }
 
@@ -374,56 +381,54 @@ export default class LocalEchoController extends EventEmitter {
 
     /**
      * Set the new cursor position, as an offset on the input string
-     *
-     * This function:
-     * - Calculates the previous and current
      */
     setCursor(newCursor) {
         if (newCursor < 0) newCursor = 0
         if (newCursor > this._input.length) newCursor = this._input.length
 
+        // Skip if cursor position didn't change
+        if (this._cursor === newCursor) return
+
         // Apply prompt formatting to get the visual status of the display
         const inputWithPrompt = this.applyPrompts(this._input)
-        const inputLines = countLines(inputWithPrompt, this._termSize.cols)
 
-        // Estimate previous cursor position
-        const prevPromptOffset = this.applyPromptOffset(
-            this._input,
-            this._cursor
-        )
-        const { col: prevCol, row: prevRow } = offsetToColRow(
+        // Get current cursor position
+        const promptCursor = this.applyPromptOffset(this._input, this._cursor)
+        const { col: currentCol, row: currentRow } = offsetToColRow(
             inputWithPrompt,
-            prevPromptOffset,
+            promptCursor,
             this._termSize.cols
         )
 
-        // Estimate next cursor position
+        // Get target cursor position
         const newPromptOffset = this.applyPromptOffset(this._input, newCursor)
-        const { col: newCol, row: newRow } = offsetToColRow(
+        const { col: targetCol, row: targetRow } = offsetToColRow(
             inputWithPrompt,
             newPromptOffset,
             this._termSize.cols
         )
 
-        // Adjust vertically
-        if (newRow > prevRow) {
-            for (let i = prevRow; i < newRow; ++i)
-                this.term.write(ansiEscapes.cursorDown())
-        } else {
-            for (let i = newRow; i < prevRow; ++i)
-                this.term.write(ansiEscapes.cursorUp())
+        // Use absolute cursor positioning to reduce flickering
+        this.term.write("\r") // Move to beginning of line
+        
+        // Handle vertical movement
+        if (targetRow !== currentRow) {
+            // If going up
+            if (targetRow < currentRow) {
+                this.term.write(`\x1B[${currentRow - targetRow}A`)
+            } 
+            // If going down
+            else {
+                this.term.write(`\x1B[${targetRow - currentRow}B`)
+            }
+        }
+        
+        // Handle horizontal movement
+        if (targetCol > 0) {
+            this.term.write(`\x1B[${targetCol}C`)
         }
 
-        // Adjust horizontally
-        if (newCol > prevCol) {
-            for (let i = prevCol; i < newCol; ++i)
-                this.term.write(ansiEscapes.cursorForward())
-        } else {
-            for (let i = newCol; i < prevCol; ++i)
-                this.term.write(ansiEscapes.cursorBackward())
-        }
-
-        // Set new offset
+        // Update cursor state
         this._cursor = newCursor
     }
 
@@ -471,16 +476,25 @@ export default class LocalEchoController extends EventEmitter {
      */
     handleCursorErase(backspace) {
         const { _cursor, _input } = this
+        
         if (backspace) {
             if (_cursor <= 0) return
-            const newInput =
-                _input.substr(0, _cursor - 1) + _input.substr(_cursor)
-            this.clearInput()
+            
+            // Optimize single character deletion at end of input
+            if (_cursor === _input.length && _cursor > 0) {
+                this.term.write("\b \b") // Move back, erase, move back again
+                this._input = _input.substr(0, _cursor - 1)
+                this._cursor -= 1
+                return
+            }
+            
+            const newInput = _input.substr(0, _cursor - 1) + _input.substr(_cursor)
             this._cursor -= 1
-            this.setInput(newInput, false)
+            this.setInput(newInput)
         } else {
-            const newInput =
-                _input.substr(0, _cursor) + _input.substr(_cursor + 1)
+            // Delete key - no optimization for this case
+            if (_cursor >= _input.length) return
+            const newInput = _input.substr(0, _cursor) + _input.substr(_cursor + 1)
             this.setInput(newInput)
         }
     }
@@ -519,8 +533,7 @@ export default class LocalEchoController extends EventEmitter {
      */
     handleCursorInsert(data) {
         const { _cursor, _input } = this
-        const newInput =
-            _input.substr(0, _cursor) + data + _input.substr(_cursor)
+        const newInput = _input.substr(0, _cursor) + data + _input.substr(_cursor)
         this._cursor += data.length
         this.setInput(newInput)
     }
@@ -545,10 +558,6 @@ export default class LocalEchoController extends EventEmitter {
 
     /**
      * Handle terminal resize
-     *
-     * This function clears the prompt using the previous configuration,
-     * updates the cached terminal size information and then re-renders the
-     * input. This leads (most of the times) into a better formatted input.
      */
     handleTermResize(data) {
         const { rows, cols } = data
@@ -656,11 +665,10 @@ export default class LocalEchoController extends EventEmitter {
                 if (key.ctrl) {
                     ofs = closestLeftBoundary(this._input, this._cursor)
                     if (ofs != null) {
-                        this.setInput(
-                            this._input.substr(0, ofs) +
-                                this._input.substr(this._cursor)
-                        )
-                        this.setCursor(ofs)
+                        const newInput = this._input.substr(0, ofs) + this._input.substr(this._cursor)
+                        const cursorPos = ofs
+                        this.setInput(newInput)
+                        this.setCursor(cursorPos)
                     }
                 } else {
                     this.handleCursorErase(true)
