@@ -77,25 +77,21 @@
         }
       }
     },
-    "Hello!": {
-      "description": "Says hi",
+    "hello": {
+      "description": "Execute juju command",
       "handler": [
         {
           "component": "text",
-          "output": "Hello!"
-        },
-        {
-          "component": "text",
-          "output": "What's your name?"
+          "output": "Hello there! What's your name?"
         },
         {
           "component": "input",
           "name": "userName",
-          "message": "My name:"
+          "message": "My name is..."
         },
         {
           "component": "text",
-          "output": "Hello {{userName}}"
+          "output": "Hello there {{userName}}! Nice to meet you!"
         }
       ]
     }
