@@ -1,73 +1,103 @@
 {
-  "welcome": "Welcome to Juju CLI Prototype! Type 'help' to see available commands.",
-  "variables": {
-    "selectedController": "",
-    "selectedModel": ""
-  },
+  "welcome": "Welcome to Juju CLI! Type 'help' to see available commands.",
   "commands": {
     "juju": {
-      "description": "Interact with Juju",
+      "description": "Execute juju commands",
       "commands": {
         "ui": {
-          "description": "Open Juju UI Dashboard",
+          "description": "Access the Juju web UI",
           "handler": [
             {
               "component": "select",
               "name": "controller",
-              "message": "Select a Juju controller:",
+              "message": "Select a controller:",
               "choices": [
-                { "name": "production-controller", "value": "production-controller" },
-                { "name": "staging-controller", "value": "staging-controller" },
-                { "name": "testing-controller", "value": "testing-controller" }
+                {
+                  "name": "aws-controller",
+                  "value": "aws-controller"
+                },
+                {
+                  "name": "gcp-controller",
+                  "value": "gcp-controller"
+                },
+                {
+                  "name": "azure-controller",
+                  "value": "azure-controller"
+                },
+                {
+                  "name": "local-controller",
+                  "value": "local-controller"
+                }
               ]
-            },
-            {
-              "component": "variable",
-              "output": {
-                "selectedController": "{{controller}}"
-              }
             },
             {
               "component": "select",
               "name": "model",
-              "message": "Select a Juju model:",
+              "message": "Select a model:",
               "choices": [
-                { "name": "default", "value": "default" },
-                { "name": "frontend", "value": "frontend" },
-                { "name": "backend", "value": "backend" }
+                {
+                  "name": "default",
+                  "value": "default"
+                },
+                {
+                  "name": "production",
+                  "value": "production"
+                },
+                {
+                  "name": "development",
+                  "value": "development"
+                },
+                {
+                  "name": "testing",
+                  "value": "testing"
+                }
               ]
-            },
-            {
-              "component": "variable",
-              "output": {
-                "selectedModel": "{{model}}"
-              }
             },
             {
               "component": "spinner",
               "output": [
-                "Fetching Juju dashboard URL",
-                "Connecting to controller",
-                "Preparing dashboard"
+                "Connecting to {{controller}}",
+                "Loading {{model}} model",
+                "Generating dashboard link"
               ],
               "duration": 2000
             },
             {
               "component": "table",
               "output": [
-                ["Juju Dashboard UI", "Details"],
-                ["Controller", "{{selectedController}}"],
-                ["Model", "{{selectedModel}}"],
-                ["URL", "https://{{selectedController}}.juju.ui/{{selectedModel}}"]
+                [
+                  "Juju Dashboard UI"
+                ],
+                [
+                  "https://{{controller}}.juju.io/{{model}}"
+                ]
               ]
-            },
-            {
-              "component": "text",
-              "output": "Successfully generated the Juju Dashboard URL for controller '{{selectedController}}' and model '{{selectedModel}}'."
             }
           ]
         }
       }
+    },
+    "Hello!": {
+      "description": "Says hi",
+      "handler": [
+        {
+          "component": "text",
+          "output": "Hello!"
+        },
+        {
+          "component": "text",
+          "output": "What's your name?"
+        },
+        {
+          "component": "input",
+          "name": "userName",
+          "message": "My name:"
+        },
+        {
+          "component": "text",
+          "output": "Hello {{userName}}"
+        }
+      ]
     }
   }
 }
