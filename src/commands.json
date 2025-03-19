@@ -2,7 +2,8 @@
   "welcome": "Welcome to Juju CLI! Type 'help' to see available commands.",
   "variables": {
     "controller": "",
-    "model": ""
+    "model": "",
+    "name": ""
   },
   "commands": {
     "juju": {
@@ -81,10 +82,22 @@
             {
               "component": "table",
               "output": [
-                ["Juju Dashboard UI", "Details"],
-                ["Controller", "{{controller}}"],
-                ["Model", "{{model}}"],
-                ["URL", "https://{{controller}}.juju.io/{{model}}"]
+                [
+                  "Juju Dashboard UI",
+                  "Details"
+                ],
+                [
+                  "Controller",
+                  "{{controller}}"
+                ],
+                [
+                  "Model",
+                  "{{model}}"
+                ],
+                [
+                  "URL",
+                  "https://{{controller}}.juju.io/{{model}}"
+                ]
               ]
             },
             {
