@@ -6,10 +6,32 @@
       "alias": [
         "-j -u"
       ],
-      "handler": {
-        "component": "text",
-        "output": "\u001b[31mHELLO THERE YA LITTLE BASTARD\u001b[0m"
-      }
+      "handler": [
+        {
+          "component": "text",
+          "output": "\u001b[31mHELLO THERE YA LITTLE BASTARD\u001b[0m"
+        },
+        {
+          "component": "spinner",
+          "output": "Working...",
+          "duration": 2000,
+          "conclusion": "succeed"
+        },
+        {
+          "component": "table",
+          "output": [
+            [
+              "HELLO"
+            ],
+            [
+              "FELLA"
+            ],
+            [
+              "HI"
+            ]
+          ]
+        }
+      ]
     }
   }
 }
