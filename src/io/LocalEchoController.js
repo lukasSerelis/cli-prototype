@@ -478,18 +478,27 @@ setCursor(newCursor) {
     this._cursor = newCursor;
 }
 
-    /**
-     * Move cursor at given direction
-     */
-    handleCursorMove(dir) {
-        if (dir > 0) {
-            const num = Math.min(dir, this._input.length - this._cursor)
-            this.setCursor(this._cursor + num)
-        } else if (dir < 0) {
-            const num = Math.max(dir, -this._cursor)
-            this.setCursor(this._cursor + num)
+/**
+ * Move cursor at given direction
+ */
+handleCursorMove(dir) {
+    // Very simple fix for cursor movement
+    if (dir > 0) {
+        // Make sure we don't move past the end of input
+        if (this._cursor < this._input.length) {
+            // Use direct ANSI escape code for right movement
+            this.term.write('\x1B[C');
+            this._cursor += 1;
+        }
+    } else if (dir < 0) {
+        // Make sure we don't move past the beginning of input
+        if (this._cursor > 0) {
+            // Use direct ANSI escape code for left movement
+            this.term.write('\x1B[D');
+            this._cursor -= 1;
         }
     }
+}
 
     /**
      * Set the cursor position absolute
