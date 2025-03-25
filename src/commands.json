@@ -1,42 +1,75 @@
 {
-  "json-key">"welcome": "Welcome to my CLI prototype!",
-  "json-key">"variables": {},
-  "json-key">"commands": {
-    "json-key">"juju ui": {
-      "json-key">"description": "Open Juju dashboard UI",
-      "json-key">"handler": [
-        {
-          "json-key">"component": "select",
-          "json-key">"name": "controller",
-          "json-key">"message": "Select a controller:",
-          "json-key">"choices": [
-            "controller-aws",
-            "controller-gcp",
-            "controller-azure"
-          ]
-        },
-        {
-          "json-key">"component": "select",
-          "json-key">"name": "model",
-          "json-key">"message": "Select a model:",
-          "json-key">"choices": [
-            "model-production",
-            "model-staging",
-            "model-development"
-          ]
-        },
-        {
-          "json-key">"component": "table",
-          "json-key">"output": [
-            [
-              "juju dashboard ui"
-            ],
-            [
-              "https://{{controller}}.juju-dashboard.com/model/{{model}}"
-            ]
+  "welcome": "Welcome to Juju CLI! Type 'help' to see available commands.",
+  "variables": {
+    "selectedController": "",
+    "selectedModel": ""
+  },
+  "commands": {
+    "juju": {
+      "description": "Interact with Juju",
+      "commands": {
+        "ui": {
+          "description": "Access Juju Dashboard UI",
+          "handler": [
+            {
+              "component": "select",
+              "name": "controllerChoice",
+              "message": "Select a Juju controller:",
+              "choices": [
+                { "name": "aws-controller", "value": "aws-controller" },
+                { "name": "gcp-controller", "value": "gcp-controller" },
+                { "name": "azure-controller", "value": "azure-controller" },
+                { "name": "local-controller", "value": "local-controller" }
+              ]
+            },
+            {
+              "component": "variable",
+              "output": {
+                "selectedController": "{{controllerChoice}}"
+              }
+            },
+            {
+              "component": "select",
+              "name": "modelChoice",
+              "message": "Select a Juju model:",
+              "choices": [
+                { "name": "default", "value": "default" },
+                { "name": "production", "value": "production" },
+                { "name": "development", "value": "development" },
+                { "name": "testing", "value": "testing" }
+              ]
+            },
+            {
+              "component": "variable",
+              "output": {
+                "selectedModel": "{{modelChoice}}"
+              }
+            },
+            {
+              "component": "spinner",
+              "output": [
+                "Connecting to {{selectedController}} controller...",
+                "Loading {{selectedModel}} model...",
+                "Generating Juju Dashboard URL..."
+              ],
+              "duration": 2000
+            },
+            {
+              "component": "table",
+              "output": [
+                ["Juju Dashboard UI", "URL"],
+                ["Controller", "{{selectedController}}"],
+                ["Model", "{{selectedModel}}"],
+                ["Link", "https://{{selectedController}}.juju.ui/{{selectedModel}}"]
+              ]
+            },
+            {
+              "component": "text",
+              "output": "✅ Dashboard URL generated successfully!"
+            }
           ]
         }
-      ]
+      }
     }
   }
 }
