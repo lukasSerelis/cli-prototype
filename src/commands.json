@@ -17,12 +17,12 @@
           "name": "password",
           "message": "Enter your password:"
         },
-        {
-          "component": "spinner",
-          "output": "Loading that thang",
-          "duration": 2000,
-          "conclusion": "success"
-        },
+ {
+  "component": "spinner",
+  "output": ["Logging in", "Please wait", "Verifying credentials"],
+  "duration": 2000,
+  "conclusion": "success"
+}
         {
           "component": "variable"
         },
