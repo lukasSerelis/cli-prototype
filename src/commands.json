@@ -19,12 +19,15 @@
         },
         {
           "component": "spinner",
-          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
+          "output": "Loading_this_mess",
           "duration": 2000,
           "conclusion": "success"
         },
         {
-          "component": "variable"
+          "component": "variable",
+          "output": {
+            "isLoggedIn": "true"
+          }
         },
         {
           "component": "text",
@@ -42,12 +45,18 @@
             {
               "component": "spinner",
               "output": "Logging out...",
-              "duration": 1000
+              "duration": 1000,
+              "conclusion": "success"
             },
             {
               "component": "variable",
               "output": {
-                "username": "",
+                "username": ""
+              }
+            },
+            {
+              "component": "variable",
+              "output": {
                 "isLoggedIn": "false"
               }
             },
@@ -73,34 +82,19 @@
             {
               "component": "spinner",
               "output": "Fetching tasks...",
-              "duration": 1000
+              "duration": 1000,
+              "conclusion": "success"
             },
             {
               "component": "table",
               "output": [
                 [
-                  "ID",
-                  "Task",
-                  "Priority",
-                  "Status"
+                  "Header1",
+                  "Header2"
                 ],
                 [
-                  "1",
-                  "Implement login",
-                  "High",
-                  "In Progress"
-                ],
-                [
-                  "2",
-                  "Create task list",
-                  "Medium",
-                  "Todo"
-                ],
-                [
-                  "3",
-                  "Add task prioritization",
-                  "Low",
-                  "Completed"
+                  "Value1",
+                  "Value2"
                 ]
               ]
             }
