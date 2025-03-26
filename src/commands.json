@@ -24,7 +24,8 @@
   "conclusion": "success"
 }
         {
-          "component": "variable"
+          "component": "variable",
+          "isLoggedIn": "true"
         },
         {
           "component": "text",
