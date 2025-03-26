@@ -19,9 +19,9 @@
         },
         {
           "component": "spinner",
-          "output": ["Logging in", "Please wait", "Verifying credentials"],
+          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
           "duration": 2000,
-          "conclusion": "succeed"
+          "conclusion": "success"
         },
         {
           "component": "variable",
@@ -46,12 +46,22 @@
               "component": "spinner",
               "output": "Logging out...",
               "duration": 1000,
-              "conclusion": "succeed"
+              "conclusion": "success"
             },
             {
               "component": "variable",
               "output": {
                 "username": ""
+              }
+            },
+            {
+              "component": "text",
+              "output": "You have been logged out successfully."
+            },
+            {
+              "component": "variable",
+              "output": {
+                "isLoggedIn": "false"
               }
             }
           ],
@@ -73,12 +83,25 @@
               "component": "spinner",
               "output": "Fetching tasks...",
               "duration": 1000,
-              "conclusion": "succeed"
+              "conclusion": "success"
+            },
+            {
+              "component": "table",
+              "output": [
+                [
+                  "Header1",
+                  "Header2"
+                ],
+                [
+                  "Value1",
+                  "Value2"
+                ]
+              ]
             }
           ],
           "else": {
             "component": "text",
-            "output": ""
+            "output": "Please log in to view tasks."
           }
         }
       }
