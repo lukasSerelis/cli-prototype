@@ -17,15 +17,17 @@
           "name": "password",
           "message": "Enter your password:"
         },
- {
-  "component": "spinner",
-  "output": ["Logging in", "Please wait", "Verifying credentials"],
-  "duration": 2000,
-  "conclusion": "success"
-}
+        {
+          "component": "spinner",
+          "output": ["Logging in", "Please wait", "Verifying credentials"],
+          "duration": 2000,
+          "conclusion": "success"
+        },
         {
           "component": "variable",
-          "isLoggedIn": "true"
+          "output": {
+            "isLoggedIn": "true"
+          }
         },
         {
           "component": "text",
@@ -43,18 +45,14 @@
             {
               "component": "spinner",
               "output": "Logging out...",
-              "duration": 1000
+              "duration": 1000,
+              "conclusion": "success"
             },
             {
               "component": "variable",
               "output": {
-                "username": "",
-                "isLoggedIn": "false"
+                "username": ""
               }
-            },
-            {
-              "component": "text",
-              "output": "You have been logged out successfully."
             }
           ],
           "else": {
@@ -74,36 +72,8 @@
             {
               "component": "spinner",
               "output": "Fetching tasks...",
-              "duration": 1000
-            },
-            {
-              "component": "table",
-              "output": [
-                [
-                  "ID",
-                  "Task",
-                  "Priority",
-                  "Status"
-                ],
-                [
-                  "1",
-                  "Implement login",
-                  "High",
-                  "In Progress"
-                ],
-                [
-                  "2",
-                  "Create task list",
-                  "Medium",
-                  "Todo"
-                ],
-                [
-                  "3",
-                  "Add task prioritization",
-                  "Low",
-                  "Completed"
-                ]
-              ]
+              "duration": 1000,
+              "conclusion": "success"
             }
           ],
           "else": {
