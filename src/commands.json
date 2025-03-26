@@ -19,7 +19,7 @@
         },
         {
           "component": "spinner",
-          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
+          "output": "Signingin",
           "duration": 2000,
           "conclusion": "success"
         },
@@ -57,12 +57,6 @@
             {
               "component": "text",
               "output": "You have been logged out successfully."
-            },
-            {
-              "component": "variable",
-              "output": {
-                "isLoggedIn": "false"
-              }
             }
           ],
           "else": {
