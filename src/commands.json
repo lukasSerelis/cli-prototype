@@ -4,6 +4,13 @@
   "commands": {
     "juju ui": {
       "description": "Open Juju dashboard UI",
+      "options": {
+        "dashboard": {
+          "description": "Dashboard URL",
+          "type": "string",
+          "demandOption": true
+        }
+      },
       "handler": [
         {
           "component": "select",
@@ -35,25 +42,6 @@
               "https://{{controller}}.juju-dashboard.com/model/{{model}}"
             ]
           ]
-        }
-      ]
-    },
-    "Hello": {
-      "description": "Hi there!",
-      "alias": "-h",
-      "handler": [
-        {
-          "component": "text",
-          "output": "Hello there! What is your name?"
-        },
-        {
-          "component": "input",
-          "name": "input1",
-          "message": "My name is..."
-        },
-        {
-          "component": "text",
-          "output": "Well hello there {{input1}}"
         }
       ]
     }
