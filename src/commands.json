@@ -19,7 +19,7 @@
         },
         {
           "component": "spinner",
-          "output": "Loading_this_mess",
+          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
           "duration": 2000,
           "conclusion": "success"
         },
@@ -55,14 +55,14 @@
               }
             },
             {
+              "component": "text",
+              "output": "You have been logged out successfully."
+            },
+            {
               "component": "variable",
               "output": {
                 "isLoggedIn": "false"
               }
-            },
-            {
-              "component": "text",
-              "output": "You have been logged out successfully."
             }
           ],
           "else": {
@@ -84,19 +84,6 @@
               "output": "Fetching tasks...",
               "duration": 1000,
               "conclusion": "success"
-            },
-            {
-              "component": "table",
-              "output": [
-                [
-                  "Header1",
-                  "Header2"
-                ],
-                [
-                  "Value1",
-                  "Value2"
-                ]
-              ]
             }
           ],
           "else": {
