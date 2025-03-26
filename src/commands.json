@@ -21,7 +21,7 @@
           "component": "spinner",
           "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
           "duration": 2000,
-          "conclusion": "success"
+          "conclusion": "succeed"
         },
         {
           "component": "variable",
@@ -46,7 +46,7 @@
               "component": "spinner",
               "output": "Logging out...",
               "duration": 1000,
-              "conclusion": "success"
+              "conclusion": "succeed"
             },
             {
               "component": "variable",
