@@ -19,7 +19,7 @@
         },
         {
           "component": "spinner",
-          "output": "Signingin",
+          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
           "duration": 2000,
           "conclusion": "success"
         },
