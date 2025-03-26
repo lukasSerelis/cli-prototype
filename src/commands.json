@@ -1,87 +1,48 @@
 {
-  "welcome": "Welcome to TaskTrack CLI! Type 'help' to see available commands.",
-  "variables": {
-    "isLoggedIn": "false"
-  },
+  "welcome": "Welcome to my CLI prototype!",
+  "variables": {},
   "commands": {
-    "login": {
-      "description": "Log in to TaskTrack",
+    "juju ui": {
+      "description": "Open Juju dashboard UI",
+      "options": {
+        "dashboard": {
+          "description": "Dashboard URL",
+          "type": "string"
+        }
+      },
       "handler": [
         {
-          "component": "input",
-          "name": "username",
-          "message": "Enter your username:"
+          "component": "select",
+          "name": "controller",
+          "message": "Select a controller:",
+          "choices": [
+            "controller-aws",
+            "controller-gcp",
+            "controller-azure"
+          ]
         },
         {
-          "component": "password",
-          "name": "password",
-          "message": "Enter your password:"
+          "component": "select",
+          "name": "model",
+          "message": "Select a model:",
+          "choices": [
+            "model-production",
+            "model-staging",
+            "model-development"
+          ]
         },
         {
-          "component": "spinner",
-          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
-          "duration": 2000,
-          "conclusion": "succeed"
-        },
-        {
-          "component": "variable",
-          "output": {
-            "isLoggedIn": "true"
-          }
-        },
-        {
-          "component": "text",
-          "output": "Welcome, {{username}}! You are now logged in."
+          "component": "table",
+          "output": [
+            [
+              "juju dashboard ui"
+            ],
+            [
+              "https://{{controller}}.juju-dashboard.com/model/{{model}}"
+            ]
+          ]
         }
       ]
-    },
-    "logout": {
-      "description": "Log out from TaskTrack",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "isLoggedIn == 'true'",
-          "then": [
-            {
-              "component": "spinner",
-              "output": "Logging out...",
-              "duration": 1000,
-              "conclusion": "succeed"
-            },
-            {
-              "component": "variable",
-              "output": {
-                "username": ""
-              }
-            }
-          ],
-          "else": {
-            "component": "text",
-            "output": "You are not currently logged in."
-          }
-        }
-      }
-    },
-    "list": {
-      "description": "List all tasks",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "isLoggedIn == 'true'",
-          "then": [
-            {
-              "component": "spinner",
-              "output": "Fetching tasks...",
-              "duration": 1000,
-              "conclusion": "success"
-            }
-          ],
-          "else": {
-            "component": "text",
-            "output": "Please log in to view tasks."
-          }
-        }
-      }
     }
   }
 }
