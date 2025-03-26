@@ -20,8 +20,7 @@
         {
           "component": "spinner",
           "output": ["Logging in", "Please wait", "Verifying credentials"],
-          "duration": 2000,
-          "conclusion": "success"
+          "duration": 2000
         },
         {
           "component": "variable",
