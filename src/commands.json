@@ -85,7 +85,7 @@
     },
     "juju": {
       "options": {
-        "": {
+        "ui": {
           "description": "ui",
           "type": "string"
         }
