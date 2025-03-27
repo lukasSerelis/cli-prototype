@@ -53,6 +53,16 @@
               "output": {
                 "username": ""
               }
+            },
+            {
+              "component": "text",
+              "output": "You have been logged out successfully."
+            },
+            {
+              "component": "variable",
+              "output": {
+                "isLoggedIn": "false"
+              }
             }
           ],
           "else": {
