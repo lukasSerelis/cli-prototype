@@ -21,7 +21,7 @@
           "component": "spinner",
           "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
           "duration": 2000,
-          "conclusion": "success"
+          "conclusion": "succeed"
         },
         {
           "component": "variable",
@@ -46,22 +46,12 @@
               "component": "spinner",
               "output": "Logging out...",
               "duration": 1000,
-              "conclusion": "success"
+              "conclusion": "succeed"
             },
             {
               "component": "variable",
               "output": {
                 "username": ""
-              }
-            },
-            {
-              "component": "text",
-              "output": "You have been logged out successfully."
-            },
-            {
-              "component": "variable",
-              "output": {
-                "isLoggedIn": "false"
               }
             }
           ],
@@ -83,20 +73,7 @@
               "component": "spinner",
               "output": "Fetching tasks...",
               "duration": 1000,
-              "conclusion": "success"
-            },
-            {
-              "component": "table",
-              "output": [
-                [
-                  "Header1",
-                  "Header2"
-                ],
-                [
-                  "Value1",
-                  "Value2"
-                ]
-              ]
+              "conclusion": "succeed"
             }
           ],
           "else": {
@@ -105,6 +82,33 @@
           }
         }
       }
+    },
+    "juju": {
+      "options": {
+        "": {
+          "description": "ui",
+          "type": "string"
+        }
+      },
+      "handler": [
+        {
+          "component": "spinner",
+          "output": "Generating_dashboard...",
+          "duration": 2000,
+          "conclusion": "succeed"
+        },
+        {
+          "component": "table",
+          "output": [
+            [
+              "Juju-dashboard-URL"
+            ],
+            [
+              "controller.model.juju-dashboard.com"
+            ]
+          ]
+        }
+      ]
     }
   }
 }
