@@ -1,97 +1,298 @@
 {
-  "welcome": "Welcome to TaskTrack CLI! Type 'help' to see available commands.",
-  "variables": {
-    "isLoggedIn": "false"
-  },
-  "commands": {
-    "login": {
-      "description": "Log in to TaskTrack",
-      "handler": [
-        {
-          "component": "input",
-          "name": "username",
-          "message": "Enter your username:"
-        },
-        {
-          "component": "password",
-          "name": "password",
-          "message": "Enter your password:"
-        },
-        {
-          "component": "spinner",
-          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
-          "duration": 2000,
-          "conclusion": "succeed"
-        },
-        {
-          "component": "variable",
-          "output": {
-            "isLoggedIn": "true"
-          }
-        },
-        {
-          "component": "text",
-          "output": "Welcome, {{username}}! You are now logged in."
-        }
-      ]
+    "welcome": "Welcome to TaskTrack CLI! Type 'help' to see available commands.",
+    "variables": {
+        "isLoggedIn": "false"
     },
-    "logout": {
-      "description": "Log out from TaskTrack",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "isLoggedIn == 'true'",
-          "then": [
-            {
-              "component": "spinner",
-              "output": "Logging out...",
-              "duration": 1000,
-              "conclusion": "succeed"
-            },
-            {
-              "component": "variable",
-              "output": {
-                "username": ""
-              }
-            },
-            {
-              "component": "text",
-              "output": "You have been logged out successfully."
-            },
-            {
-              "component": "variable",
-              "output": {
-                "isLoggedIn": "false"
-              }
+    "commands": {
+        "login": {
+            "description": "Log in to TaskTrack",
+            "handler": [
+                {
+                    "component": "input",
+                    "name": "username",
+                    "message": "Enter your username:"
+                },
+                {
+                    "component": "password",
+                    "name": "password",
+                    "message": "Enter your password:"
+                },
+                {
+                    "component": "spinner",
+                    "output": [
+                        "Logging in",
+                        "Please wait",
+                        "Verifying credentials"
+                    ],
+                    "duration": 2000
+                },
+                {
+                    "component": "variable",
+                    "output": {
+                        "isLoggedIn": "true"
+                    }
+                },
+                {
+                    "component": "text",
+                    "output": "Welcome, {{username}}! You are now logged in."
+                }
+            ]
+        },
+        "logout": {
+            "description": "Log out from TaskTrack",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "spinner",
+                                "output": "Logging out...",
+                                "duration": 1000
+                            },
+                            {
+                                "component": "variable",
+                                "output": {
+                                    "username": "",
+                                    "isLoggedIn": "false"
+                                }
+                            },
+                            {
+                                "component": "text",
+                                "output": "You have been logged out successfully."
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "You are not currently logged in."
+                        }
+                    }
+                }
+            ]
+        },
+        "add": {
+            "description": "Add a new task or subtask",
+            "commands": {
+                "task": {
+                    "description": "Add a new main task",
+                    "handler": [
+                        {
+                            "component": "conditional",
+                            "output": {
+                                "if": "isLoggedIn == 'true'",
+                                "then": [
+                                    {
+                                        "component": "input",
+                                        "name": "taskName",
+                                        "message": "Enter task name:"
+                                    },
+                                    {
+                                        "component": "select",
+                                        "name": "priority",
+                                        "message": "Select task priority:",
+                                        "choices": [
+                                            { "name": "Low", "value": "low" },
+                                            {
+                                                "name": "Medium",
+                                                "value": "medium"
+                                            },
+                                            { "name": "High", "value": "high" }
+                                        ]
+                                    },
+                                    {
+                                        "component": "progressBar",
+                                        "output": "Adding task...",
+                                        "duration": 1500
+                                    },
+                                    {
+                                        "component": "text",
+                                        "output": "Task '{{taskName}}' added with {{priority}} priority."
+                                    }
+                                ],
+                                "else": {
+                                    "component": "text",
+                                    "output": "Please log in to add tasks."
+                                }
+                            }
+                        }
+                    ]
+                },
+                "subtask": {
+                    "description": "Add a new subtask to an existing task",
+                    "handler": [
+                        {
+                            "component": "conditional",
+                            "output": {
+                                "if": "isLoggedIn == 'true'",
+                                "then": [
+                                    {
+                                        "component": "input",
+                                        "name": "parentTaskId",
+                                        "message": "Enter the ID of the parent task:"
+                                    },
+                                    {
+                                        "component": "input",
+                                        "name": "subtaskName",
+                                        "message": "Enter subtask name:"
+                                    },
+                                    {
+                                        "component": "progressBar",
+                                        "output": "Adding subtask...",
+                                        "duration": 1500
+                                    },
+                                    {
+                                        "component": "text",
+                                        "output": "Subtask '{{subtaskName}}' added to task {{parentTaskId}}."
+                                    }
+                                ],
+                                "else": {
+                                    "component": "text",
+                                    "output": "Please log in to add subtasks."
+                                }
+                            }
+                        }
+                    ]
+                }
             }
-          ],
-          "else": {
-            "component": "text",
-            "output": "You are not currently logged in."
-          }
-        }
-      }
-    },
-    "list": {
-      "description": "List all tasks",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "isLoggedIn == 'true'",
-          "then": [
-            {
-              "component": "spinner",
-              "output": "Fetching tasks...",
-              "duration": 1000,
-              "conclusion": "succeed"
+        },
+        "list": {
+            "description": "List all tasks",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "spinner",
+                                "output": "Fetching tasks...",
+                                "duration": 1000
+                            },
+                            {
+                                "component": "table",
+                                "output": [
+                                    ["ID", "Task", "Priority", "Status"],
+                                    [
+                                        "1",
+                                        "Implement login",
+                                        "High",
+                                        "In Progress"
+                                    ],
+                                    ["2", "Create task list", "Medium", "Todo"],
+                                    [
+                                        "3",
+                                        "Add task prioritization",
+                                        "Low",
+                                        "Completed"
+                                    ]
+                                ]
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "Please log in to view tasks."
+                        }
+                    }
+                }
+            ]
+        },
+        "complete": {
+            "description": "Mark a task as complete",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "number",
+                                "name": "taskId",
+                                "message": "Enter the ID of the task to mark as complete:"
+                            },
+                            {
+                                "component": "spinner",
+                                "output": "Updating task status...",
+                                "duration": 1500
+                            },
+                            {
+                                "component": "text",
+                                "output": "Task {{taskId}} has been marked as complete."
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "Please log in to update tasks."
+                        }
+                    }
+                }
+            ]
+        },
+        "report": {
+            "description": "Generate reports",
+            "commands": {
+                "summary": {
+                    "description": "Generate a summary report of all tasks",
+                    "handler": [
+                        {
+                            "component": "conditional",
+                            "output": {
+                                "if": "isLoggedIn == 'true'",
+                                "then": [
+                                    {
+                                        "component": "spinner",
+                                        "output": "Generating summary report...",
+                                        "duration": 2000
+                                    },
+                                    {
+                                        "component": "text",
+                                        "output": "Summary Report:\n- Total tasks: 10\n- Completed: 3\n- In Progress: 5\n- Todo: 2"
+                                    }
+                                ],
+                                "else": {
+                                    "component": "text",
+                                    "output": "Please log in to generate reports."
+                                }
+                            }
+                        }
+                    ]
+                },
+                "priority": {
+                    "description": "Generate a report of tasks by priority",
+                    "handler": [
+                        {
+                            "component": "conditional",
+                            "output": {
+                                "if": "isLoggedIn == 'true'",
+                                "then": [
+                                    {
+                                        "component": "spinner",
+                                        "output": "Generating priority report...",
+                                        "duration": 2000
+                                    },
+                                    {
+                                        "component": "table",
+                                        "output": [
+                                            [
+                                                "Priority",
+                                                "Total Tasks",
+                                                "Completed"
+                                            ],
+                                            ["High", "4", "1"],
+                                            ["Medium", "3", "1"],
+                                            ["Low", "3", "1"]
+                                        ]
+                                    }
+                                ],
+                                "else": {
+                                    "component": "text",
+                                    "output": "Please log in to generate reports."
+                                }
+                            }
+                        }
+                    ]
+                }
             }
-          ],
-          "else": {
-            "component": "text",
-            "output": "Please log in to view tasks."
-          }
         }
-      }
     }
-  }
 }
