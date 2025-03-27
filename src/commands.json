@@ -4,109 +4,17 @@
     "isLoggedIn": "false"
   },
   "commands": {
-    "login": {
-      "description": "Log in to TaskTrack",
+    "Hi Leia": {
       "handler": [
         {
-          "component": "input",
-          "name": "username",
-          "message": "Enter your username:"
-        },
-        {
-          "component": "password",
-          "name": "password",
-          "message": "Enter your password:"
-        },
-        {
           "component": "spinner",
-          "output": "Logging in",
+          "output": "Processing...",
           "duration": 2000,
           "conclusion": "succeed"
-        },
-        {
-          "component": "variable",
-          "output": {
-            "isLoggedIn": "true"
-          }
         },
         {
           "component": "text",
-          "output": "Welcome, {{username}}! You are now logged in."
-        }
-      ]
-    },
-    "logout": {
-      "description": "Log out from TaskTrack",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "isLoggedIn == 'true'",
-          "then": [
-            {
-              "component": "spinner",
-              "output": "Logging out...",
-              "duration": 1000,
-              "conclusion": "succeed"
-            },
-            {
-              "component": "variable",
-              "output": {
-                "username": ""
-              }
-            }
-          ],
-          "else": {
-            "component": "text",
-            "output": "You are not currently logged in."
-          }
-        }
-      }
-    },
-    "list": {
-      "description": "List all tasks",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "isLoggedIn == 'true'",
-          "then": [
-            {
-              "component": "spinner",
-              "output": "Fetching tasks...",
-              "duration": 1000,
-              "conclusion": "succeed"
-            }
-          ],
-          "else": {
-            "component": "text",
-            "output": "Please log in to view tasks."
-          }
-        }
-      }
-    },
-    "juju": {
-      "options": {
-        "ui": {
-          "description": "ui",
-          "type": "string"
-        }
-      },
-      "handler": [
-        {
-          "component": "spinner",
-          "output": "Generating_dashboard...",
-          "duration": 2000,
-          "conclusion": "succeed"
-        },
-        {
-          "component": "table",
-          "output": [
-            [
-              "Juju-dashboard-URL"
-            ],
-            [
-              "controller.model.juju-dashboard.com"
-            ]
-          ]
+          "output": "Yes, yes you are"
         }
       ]
     }
