@@ -32,16 +32,6 @@
           "component": "input",
           "name": "Specify controller",
           "message": "Select controller:"
-        },
-        {
-          "component": "spinner",
-          "output": "Adding controller \"microk8s\" to JIMM",
-          "duration": 2000,
-          "conclusion": "succeed"
-        },
-        {
-          "component": "text",
-          "output": "Specify a controller"
         }
       ]
     }
