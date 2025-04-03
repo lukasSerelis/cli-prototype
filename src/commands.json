@@ -1,46 +1,217 @@
 {
-  "welcome": "Welcome to TaskTrack CLI! Type 'help' to see available commands.",
+  "welcome": "Welcome to JAAS CLI! Type 'help' to see available commands.",
   "variables": {
-    "jimm": "false"
+    "isLoggedIn": "true",
+    "currentController": "jimm"
   },
   "commands": {
-    "juju register-controller": {
-      "description": "registers a controller to jimm",
+    "bootstrap": {
+      "description": "Bootstrap a new Juju controller",
+      "example": [
+        "bootstrap microk8s workload-microk8s --config login-token-refresh-url=http://jimm-endpoints.jimm.svc.cluster.local:8080/.well-known/jwks.json",
+        "Bootstrap a controller on MicroK8s with the required JIMM configuration"
+      ],
       "handler": [
         {
-          "component": "text",
-          "output": "Specify a controller"
-        },
-        {
-          "component": "table",
-          "output": [
-            [
-              "Controller name",
-              "UUID"
-            ],
-            [
-              "microk8s",
-              "7e23af6c-ba53-480d-820d-1c4710e3aa74"
-            ],
-            [
-              "test-controller",
-              "7e23af6c-ff53-480d-820d-1c4710e3aa74"
-            ]
-          ]
-        },
-        {
-          "component": "input",
-          "name": "Specify controller",
-          "message": "Select controller:"
-        },
-        {
           "component": "spinner",
-          "output": "Adding controller \"microk8s\" to JIMM",
-          "duration": 2000,
-          "conclusion": "succeed"
+          "output": ["Initializing", "Setting up cloud connection", "Creating controller VM", "Installing Juju"],
+          "duration": 5000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "Controller successfully bootstrapped.\nCloud: {{args.0}}\nName: {{args.1}}"
         }
       ]
     },
-    "juju switch jimm-controller": {}
+    "switch": {
+      "description": "Switch to a different controller",
+      "example": [
+        "switch jimm",
+        "Switch to the jimm controller"
+      ],
+      "handler": [
+        {
+          "component": "spinner",
+          "output": "Switching controller...",
+          "duration": 1000,
+          "conclusion": "success"
+        },
+        {
+          "component": "variable",
+          "output": {
+            "currentController": "{{args.0}}"
+          }
+        },
+        {
+          "component": "text",
+          "output": "Controller switched to {{args.0}}"
+        }
+      ]
+    },
+    "controller-info": {
+      "description": "Generate controller information YAML file",
+      "example": [
+        "controller-info workload-microk8s ~/snap/jimmctl/common/k8s-controller-info.yaml --local --tls-hostname juju-apiserver",
+        "Generate controller info for a MicroK8s controller with local configuration"
+      ],
+      "handler": [
+        {
+          "component": "spinner",
+          "output": ["Connecting to controller", "Retrieving controller information", "Generating YAML file"],
+          "duration": 2000,
+          "conclusion": "success"
+        },
+        {
+          "component": "conditional",
+          "output": {
+            "if": "args.includes('--local')",
+            "then": {
+              "component": "text",
+              "output": "Controller information saved to {{args.1}} with local configuration.\nNote: Using --local flag to avoid providing public DNS address.\nNote: Using --tls-hostname {{args.3}} for TLS validation."
+            },
+            "else": {
+              "component": "text",
+              "output": "Controller information saved to {{args.1}}."
+            }
+          }
+        }
+      ]
+    },
+    "add-controller": {
+      "description": "Add a controller to JIMM",
+      "example": [
+        "add-controller ~/snap/jimmctl/common/k8s-controller-info.yaml",
+        "Add a controller to JIMM using the provided YAML file"
+      ],
+      "handler": [
+        {
+          "component": "conditional",
+          "output": {
+            "if": "currentController == 'jimm'",
+            "then": [
+              {
+                "component": "spinner",
+                "output": ["Reading configuration file", "Connecting to controller", "Registering controller with JIMM"],
+                "duration": 3000,
+                "conclusion": "success"
+              },
+              {
+                "component": "text",
+                "output": "Controller successfully added to JIMM.\nYou can now manage workloads on this controller through JIMM."
+              }
+            ],
+            "else": {
+              "component": "text",
+              "output": "Error: You must be on the JIMM controller to add a new controller.\nRun 'switch jimm' first."
+            }
+          }
+        }
+      ]
+    },
+    "bootstrap-lxd": {
+      "description": "Bootstrap an LXD controller with JIMM configuration",
+      "alias": "bootstrap-lxd-controller",
+      "example": [
+        "bootstrap-lxd workload-lxd",
+        "Bootstrap and configure an LXD controller for use with JIMM"
+      ],
+      "handler": [
+        {
+          "component": "text",
+          "output": "Creating cloud-init configuration file..."
+        },
+        {
+          "component": "spinner",
+          "output": ["Creating cloud-init configuration", "Setting up host networking", "Adding CA certificates"],
+          "duration": 2000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "Cloud-init configuration created with:\n- Host entry for test-jimm.localhost\n- CA certificate configuration"
+        },
+        {
+          "component": "spinner",
+          "output": ["Bootstrapping LXD controller", "Initializing Juju", "Configuring JIMM connection"],
+          "duration": 4000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "LXD controller {{args.0}} successfully bootstrapped with JIMM configuration.\n\nTo add this controller to JIMM, run:\n  switch jimm\n  controller-info {{args.0}} ~/snap/jimmctl/common/lxd-controller-info.yaml --local --tls-hostname juju-apiserver\n  add-controller ~/snap/jimmctl/common/lxd-controller-info.yaml"
+        }
+      ]
+    },
+    "microk8s-setup": {
+      "description": "Interactive setup for MicroK8s controller connection to JIMM",
+      "handler": [
+        {
+          "component": "text",
+          "output": "This wizard will guide you through connecting a MicroK8s controller to JIMM"
+        },
+        {
+          "component": "input",
+          "name": "controllerName",
+          "message": "Enter a name for your new controller:"
+        },
+        {
+          "component": "spinner",
+          "output": ["Bootstrapping MicroK8s controller", "Setting JIMM configuration"],
+          "duration": 3000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "Running: juju bootstrap microk8s {{controllerName}} --config login-token-refresh-url=http://jimm-endpoints.jimm.svc.cluster.local:8080/.well-known/jwks.json"
+        },
+        {
+          "component": "spinner",
+          "output": "Bootstrapping controller...",
+          "duration": 4000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "Switching to JIMM controller"
+        },
+        {
+          "component": "spinner",
+          "output": "Switching...",
+          "duration": 1000,
+          "conclusion": "success"
+        },
+        {
+          "component": "variable",
+          "output": {
+            "currentController": "jimm"
+          }
+        },
+        {
+          "component": "text",
+          "output": "Generating controller info YAML..."
+        },
+        {
+          "component": "spinner",
+          "output": "Creating YAML file...",
+          "duration": 2000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "Adding controller to JIMM..."
+        },
+        {
+          "component": "spinner",
+          "output": "Registering with JIMM...",
+          "duration": 2000,
+          "conclusion": "success"
+        },
+        {
+          "component": "text",
+          "output": "Success! MicroK8s controller {{controllerName}} has been added to JIMM.\nYou can now manage workloads on this controller through JIMM."
+        }
+      ]
+    }
   }
 }
