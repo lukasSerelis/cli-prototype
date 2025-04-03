@@ -27,12 +27,12 @@
               "7e23af6c-ff53-480d-820d-1c4710e3aa74"
             ]
           ]
-        }
-      ]
-    },
-    "juju add-controller microk8s": {
-      "description": "adds a controller to juju",
-      "handler": [
+        },
+        {
+          "component": "input",
+          "name": "Specify controller",
+          "message": "Select controller:"
+        },
         {
           "component": "spinner",
           "output": "Adding controller \"microk8s\" to JIMM",
