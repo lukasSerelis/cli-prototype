@@ -6,58 +6,41 @@
   "commands": {
     "juju register-controller": {
       "description": "registers a controller to jimm",
-      "handler": {
-        "component": "conditional",
-        "output": {
-          "if": "jimm=='true'",
-          "then": [
-            {
-              "component": "text",
-              "output": "Specify a controller"
-            },
-            {
-              "component": "table",
-              "output": [
-                [
-                  "Controller name",
-                  "UUID"
-                ],
-                [
-                  "microk8s",
-                  "7e23af6c-ba53-480d-820d-1c4710e3aa74"
-                ],
-                [
-                  "test-controller",
-                  "7e23af6c-ff53-480d-820d-1c4710e3aa74"
-                ]
-              ]
-            },
-            {
-              "component": "input",
-              "name": "Specify controller",
-              "message": "Select controller:"
-            },
-            {
-              "component": "spinner",
-              "output": "Adding controller \"microk8s\" to JIMM",
-              "duration": 2000,
-              "conclusion": "succeed"
-            }
-          ],
-          "else": {
-            "component": "text",
-            "output": "You can only register controller to a JIMM controller"
-          }
+      "handler": [
+        {
+          "component": "text",
+          "output": "Specify a controller"
+        },
+        {
+          "component": "table",
+          "output": [
+            [
+              "Controller name",
+              "UUID"
+            ],
+            [
+              "microk8s",
+              "7e23af6c-ba53-480d-820d-1c4710e3aa74"
+            ],
+            [
+              "test-controller",
+              "7e23af6c-ff53-480d-820d-1c4710e3aa74"
+            ]
+          ]
+        },
+        {
+          "component": "input",
+          "name": "Specify controller",
+          "message": "Select controller:"
+        },
+        {
+          "component": "spinner",
+          "output": "Adding controller \"microk8s\" to JIMM",
+          "duration": 2000,
+          "conclusion": "succeed"
         }
-      }
+      ]
     },
-    "juju switch jimm-controller": {
-      "handler": {
-        "component": "variable",
-        "output": {
-          "jimm": "true"
-        }
-      }
-    }
+    "juju switch jimm-controller": {}
   }
 }
