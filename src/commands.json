@@ -9,7 +9,7 @@
       "handler": {
         "component": "conditional",
         "output": {
-          "if": "jimm==\"true\"",
+          "if": "jimm=='true'",
           "then": [
             {
               "component": "text",
