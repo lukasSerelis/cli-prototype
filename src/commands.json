@@ -1,120 +1,550 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "welcome": "Juju CLI Prototype\nDemonstrating Path 1 (Integrated) and Path 2 (Standalone) for Migration/Bootstrap states.",
-    "variables": {},
-    "commands": {
+  "welcome": "Juju CLI Prototype — Migration & Bootstrap Observability\n\nThis prototype demonstrates two design approaches for managing\nmigration and bootstrap lifecycle operations.\n\nPATH A — Integrated into existing commands:\n\n  Migration:\n    start   juju migrate my-db-model\n    stop    juju stop-migration\n    list    juju models\n    view    juju show-model my-db-model\n            juju show-model my-db-model-failed\n            juju show-model frontend                 (baseline)\n    logs    juju show-model my-db-model --migration-logs\n\n  Bootstrap:\n    start   juju bootstrap\n    stop    juju stop-bootstrap jaas-prod-eu\n    list    juju controllers\n    view    juju show-controller jaas-prod-eu\n            juju show-controller test1               (baseline)\n    logs    juju show-controller jaas-prod-eu --bootstrap-logs\n\nPATH B — First-class objects:\n\n  Migration:\n    start   juju jaas migrate-model\n    stop    juju jaas stop-migration mig-a3f74b\n    list    juju jaas migrations\n    view    juju jaas migration mig-a3f74b\n            juju jaas migration mig-e812cc           (failed)\n    logs    juju jaas migration-logs mig-a3f74b\n            juju jaas migration-logs mig-e812cc      (failed)\n\n  Bootstrap:\n    start   juju jaas bootstrap-controller\n    stop    juju jaas stop-bootstrap boot-7d29af\n    list    juju jaas bootstraps\n    view    juju jaas bootstrap boot-7d29af\n    logs    juju jaas bootstrap-logs boot-7d29af\n\nType 'juju --help' for command help.",
+  "variables": {},
+  "commands": {
+    "juju": {
+      "description": "Juju CLI — Migration and bootstrap observability prototype",
+      "commands": {
+
+        "models": {
+          "description": "[Path A] List models with inline migration status",
+          "example": ["juju models", "List all models on the current controller with migration status"],
+          "handler": [
+            {
+              "component": "text",
+              "output": "Use --refresh option with this command to see the latest information.\n\nController: test1\n"
+            },
+            {
+              "component": "table",
+              "output": [
+                ["Model", "Cloud/Region", "Type", "Status", "Owner", "Life", "Migration"],
+                ["controller", "localhost/localhost", "iaas", "available", "admin", "alive", "-"],
+                ["my-db-model", "localhost/localhost", "iaas", "available", "admin", "alive", "syncing → jaas-prod-eu"],
+                ["frontend", "localhost/localhost", "iaas", "available", "admin", "alive", "-"],
+                ["test5", "localhost/localhost", "iaas", "available", "admin", "alive", "-"]
+              ]
+            }
+          ]
+        },
+
+        "show-model": {
+          "description": "[Path A] Show model details including migration state. Use --migration-logs to view migration logs.",
+          "example": [
+            ["juju show-model my-db-model", "Show a model with an active migration"],
+            ["juju show-model my-db-model --migration-logs", "Show migration logs for a model"],
+            ["juju show-model my-db-model-failed", "Show a model with a failed migration"],
+            ["juju show-model frontend", "Show a model with no migration"]
+          ],
+          "commands": {
+            "my-db-model": {
+              "description": "Model with an active migration (syncing state)",
+              "handler": {
+                "component": "text",
+                "output": "my-db-model:\n  name: admin/my-db-model\n  short-name: my-db-model\n  model-uuid: 7a12bf03-44e1-4c9a-9e77-2f8bc3a1d4e0\n  model-type: iaas\n  controller-uuid: f2a6d183-a4fd-40e5-8dcd-a3984b5538d5\n  controller-name: test1\n  is-controller: false\n  owner: admin\n  cloud: localhost\n  region: localhost\n  type: lxd\n  life: alive\n  status:\n    current: available\n    since: \"2026-02-26\"\n  migration:\n    status: syncing\n    target-controller: jaas-prod-eu\n    started: \"2026-03-06T10:14:22Z\"\n    updated: \"2026-03-06T10:18:47Z\"\n    message: replicating charm blobs (3/7)\n  users:\n    admin:\n      display-name: admin\n      access: admin\n      last-connection: \"2026-03-04\"\n  sla: unsupported\n  agent-version: 3.6.5\n  credential:\n    name: localhost\n    owner: admin\n    cloud: localhost\n    validity-check: valid\n  supported-features:\n  - name: juju\n    description: the version of Juju used by the model\n    version: 3.6.5"
+              }
+            },
+            "my-db-model --migration-logs": {
+              "description": "Migration logs for my-db-model (active migration)",
+              "handler": {
+                "component": "text",
+                "output": "Showing migration logs for model \"my-db-model\"...\n\n2026-03-06 10:14:22 INFO  migration.worker    starting migration of model \"my-db-model\" to controller \"jaas-prod-eu\"\n2026-03-06 10:14:23 INFO  migration.worker    running prechecks on source controller\n2026-03-06 10:14:25 INFO  migration.precheck  verifying model stability: OK\n2026-03-06 10:14:26 INFO  migration.precheck  verifying agent versions: OK (3.6.5)\n2026-03-06 10:14:27 INFO  migration.precheck  verifying target controller connectivity: OK\n2026-03-06 10:14:28 INFO  migration.worker    all prechecks passed — beginning export\n2026-03-06 10:14:30 INFO  migration.export    exporting model description\n2026-03-06 10:14:35 INFO  migration.export    export complete (423 entities)\n2026-03-06 10:15:02 INFO  migration.sync      uploading tools: 3.6.5-ubuntu-amd64\n2026-03-06 10:15:18 INFO  migration.sync      tools upload complete\n2026-03-06 10:15:20 INFO  migration.sync      syncing charm blobs\n2026-03-06 10:16:01 INFO  migration.sync      replicated charm: ch:postgresql (1/7)\n2026-03-06 10:16:44 INFO  migration.sync      replicated charm: ch:pgbouncer (2/7)\n2026-03-06 10:18:47 INFO  migration.sync      replicated charm: ch:ubuntu (3/7)"
+              }
+            },
+            "my-db-model-failed": {
+              "description": "Model with a failed migration",
+              "handler": {
+                "component": "text",
+                "output": "my-db-model:\n  name: admin/my-db-model\n  short-name: my-db-model\n  model-uuid: 7a12bf03-44e1-4c9a-9e77-2f8bc3a1d4e0\n  model-type: iaas\n  controller-uuid: f2a6d183-a4fd-40e5-8dcd-a3984b5538d5\n  controller-name: test1\n  is-controller: false\n  owner: admin\n  cloud: localhost\n  region: localhost\n  type: lxd\n  life: alive\n  status:\n    current: available\n    since: \"2026-02-26\"\n  migration:\n    status: failed\n    target-controller: jaas-prod-eu\n    started: \"2026-03-06T10:14:22Z\"\n    updated: \"2026-03-06T10:19:03Z\"\n    message: \"cannot connect to target controller: network timeout\"\n  users:\n    admin:\n      display-name: admin\n      access: admin\n      last-connection: \"2026-03-04\"\n  sla: unsupported\n  agent-version: 3.6.5\n  credential:\n    name: localhost\n    owner: admin\n    cloud: localhost\n    validity-check: valid\n  supported-features:\n  - name: juju\n    description: the version of Juju used by the model\n    version: 3.6.5"
+              }
+            },
+            "my-db-model-failed --migration-logs": {
+              "description": "Migration logs for my-db-model (failed migration)",
+              "handler": {
+                "component": "text",
+                "output": "Showing migration logs for model \"my-db-model\" (most recent migration)...\n\n2026-03-06 10:14:22 INFO  migration.worker    starting migration of model \"my-db-model\" to controller \"jaas-prod-eu\"\n2026-03-06 10:14:23 INFO  migration.worker    running prechecks on source controller\n2026-03-06 10:14:25 INFO  migration.precheck  verifying model stability: OK\n2026-03-06 10:14:26 INFO  migration.precheck  verifying agent versions: OK (3.6.5)\n2026-03-06 10:14:27 INFO  migration.precheck  verifying target controller connectivity: OK\n2026-03-06 10:14:28 INFO  migration.worker    all prechecks passed — beginning export\n2026-03-06 10:14:30 INFO  migration.export    exporting model description\n2026-03-06 10:14:35 INFO  migration.export    export complete (423 entities)\n2026-03-06 10:15:02 INFO  migration.sync      uploading tools: 3.6.5-ubuntu-amd64\n2026-03-06 10:15:18 INFO  migration.sync      tools upload complete\n2026-03-06 10:15:20 INFO  migration.sync      syncing charm blobs\n2026-03-06 10:16:01 INFO  migration.sync      replicated charm: ch:postgresql (1/7)\n2026-03-06 10:18:50 WARN  migration.sync      connection to target controller interrupted, retrying (1/3)\n2026-03-06 10:19:00 WARN  migration.sync      connection to target controller interrupted, retrying (2/3)\n2026-03-06 10:19:02 WARN  migration.sync      connection to target controller interrupted, retrying (3/3)\n2026-03-06 10:19:03 ERROR migration.worker    migration failed: cannot connect to target controller: network timeout\n2026-03-06 10:19:03 INFO  migration.worker    initiating revert — restoring model on source controller\n2026-03-06 10:19:05 INFO  migration.worker    revert complete — model \"my-db-model\" restored on \"test1\""
+              }
+            },
+            "frontend": {
+              "description": "Model with no active migration (baseline)",
+              "handler": {
+                "component": "text",
+                "output": "frontend:\n  name: admin/frontend\n  short-name: frontend\n  model-uuid: 3783d711-78f3-4b81-8f5b-9cb7eef4762c\n  model-type: iaas\n  controller-uuid: f2a6d183-a4fd-40e5-8dcd-a3984b5538d5\n  controller-name: test1\n  is-controller: false\n  owner: admin\n  cloud: localhost\n  region: localhost\n  type: lxd\n  life: alive\n  status:\n    current: available\n    since: \"2026-02-26\"\n  users:\n    admin:\n      display-name: admin\n      access: admin\n      last-connection: never connected\n  sla: unsupported\n  agent-version: 3.6.5\n  credential:\n    name: localhost\n    owner: admin\n    cloud: localhost\n    validity-check: valid\n  supported-features:\n  - name: juju\n    description: the version of Juju used by the model\n    version: 3.6.5"
+              }
+            },
+            "frontend --migration-logs": {
+              "description": "No migration logs available for this model",
+              "handler": {
+                "component": "text",
+                "output": "ERROR No migration found for model \"frontend\"."
+              }
+            }
+          }
+        },
+
+        "migrate": {
+          "description": "[Path A] Migrate a model to another controller",
+          "example": ["juju migrate my-db-model", "Start migrating my-db-model"],
+          "commands": {
+            "my-db-model": {
+              "description": "Migrate my-db-model to a target controller",
+              "handler": [
+                {
+                  "component": "select",
+                  "name": "targetController",
+                  "message": "Select target controller:",
+                  "choices": [
+                    { "name": "jaas-prod-eu  (aws/eu-west-1)", "value": "jaas-prod-eu" },
+                    { "name": "jaas-dev-us   (gcp/us-east1)", "value": "jaas-dev-us" }
+                  ]
+                },
+                {
+                  "component": "confirm",
+                  "name": "confirmMigration",
+                  "message": "Migrate \"my-db-model\" to the selected controller?",
+                  "initial": true
+                },
+                {
+                  "component": "spinner",
+                  "output": ["Initiating migration...", "Running prechecks...", "Starting export..."],
+                  "duration": 3000,
+                  "conclusion": "succeed"
+                },
+                {
+                  "component": "text",
+                  "output": "Migration of \"my-db-model\" started.\n\nRun \"juju show-model my-db-model\" to monitor progress.\nRun \"juju show-model my-db-model --migration-logs\" to view live logs."
+                }
+              ]
+            }
+          }
+        },
+
+        "stop-migration": {
+          "description": "[Path A] Stop the active migration on the current model",
+          "example": ["juju stop-migration", "Stop the active migration for the current model"],
+          "handler": [
+            {
+              "component": "text",
+              "output": "Active migration found:\n  Model:   my-db-model\n  Target:  jaas-prod-eu\n  Status:  syncing\n  Started: 2026-03-06T10:14:22Z"
+            },
+            {
+              "component": "confirm",
+              "name": "confirmStop",
+              "message": "Stop this migration? The model will remain on the source controller.",
+              "initial": false
+            },
+            {
+              "component": "spinner",
+              "output": ["Stopping migration...", "Reverting model state...", "Cleaning up target controller..."],
+              "duration": 2500,
+              "conclusion": "succeed"
+            },
+            {
+              "component": "text",
+              "output": "Migration stopped. Model \"my-db-model\" remains on controller \"test1\"."
+            }
+          ]
+        },
+
         "controllers": {
-            "description": "List all controllers (Path 1: Integrated approach)",
-            "handler": {
+          "description": "[Path A] List controllers with bootstrap status",
+          "example": ["juju controllers", "List all known controllers"],
+          "handler": [
+            {
+              "component": "text",
+              "output": "Use --refresh option with this command to see the latest information.\n"
+            },
+            {
+              "component": "table",
+              "output": [
+                ["Controller", "Model", "User", "Access", "Cloud/Region", "Models", "Nodes", "HA", "Version"],
+                ["test1*", "controller", "admin", "superuser", "localhost/localhost", "5", "1", "none", "3.6.5"],
+                ["jaas-prod-eu", "-", "admin", "superuser", "aws/eu-west-1", "-", "-", "-", "(provisioning)"]
+              ]
+            }
+          ]
+        },
+
+        "show-controller": {
+          "description": "[Path A] Show controller details including bootstrap state. Use --bootstrap-logs to view bootstrap logs.",
+          "example": [
+            ["juju show-controller jaas-prod-eu", "Show a controller mid-bootstrap"],
+            ["juju show-controller jaas-prod-eu --bootstrap-logs", "Show bootstrap logs for a controller"],
+            ["juju show-controller test1", "Show a fully bootstrapped controller"]
+          ],
+          "commands": {
+            "jaas-prod-eu": {
+              "description": "Controller mid-bootstrap (provisioning)",
+              "handler": {
+                "component": "text",
+                "output": "jaas-prod-eu:\n  details:\n    controller-uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567890\n    api-endpoints: ['10.0.1.15:17070']\n    cloud: aws\n    region: eu-west-1\n    agent-version: 3.6.5\n    agent-git-commit: 33b026f4ab2a4fe371764b9c41993d3e1e90ddef\n    controller-model-version: 3.6.5\n    mongo-version: 4.4.24\n    ca-fingerprint: AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90\n    ca-cert: |\n      -----BEGIN CERTIFICATE-----\n      MIIEEjCCAnqgAwIBAgIUelz1uuf7h9TuCQOBhErkqml6yMYw...\n      -----END CERTIFICATE-----\n    bootstrap:\n      status: provisioning\n      phase: creating-instance\n      started: \"2026-03-06T09:50:10Z\"\n      updated: \"2026-03-06T09:53:17Z\"\n      message: waiting for instance i-0abc3f to reach running state\n  controller-machines:\n    \"0\":\n      instance-id: pending\n  models:\n    controller:\n      model-uuid: b09f38f4-efe9-4a81-8e68-9035220ea06f\n  current-model: admin/controller\n  account:\n    user: admin\n    access: superuser"
+              }
+            },
+            "jaas-prod-eu --bootstrap-logs": {
+              "description": "Bootstrap logs for jaas-prod-eu",
+              "handler": {
+                "component": "text",
+                "output": "Showing bootstrap logs for controller \"jaas-prod-eu\"...\n\n2026-03-06 09:50:10 INFO  bootstrap           starting bootstrap on aws/eu-west-1\n2026-03-06 09:50:11 INFO  bootstrap           validating cloud credentials\n2026-03-06 09:50:13 INFO  bootstrap           credentials valid\n2026-03-06 09:50:15 INFO  bootstrap.network   creating VPC vpc-0af3b7c...\n2026-03-06 09:50:22 INFO  bootstrap.network   VPC created\n2026-03-06 09:50:23 INFO  bootstrap.network   creating subnet subnet-0e4a2d1...\n2026-03-06 09:50:28 INFO  bootstrap.network   subnet created\n2026-03-06 09:50:29 INFO  bootstrap.network   creating security group sg-0bc8f42...\n2026-03-06 09:50:33 INFO  bootstrap.network   security group created\n2026-03-06 09:50:35 INFO  bootstrap.instance  launching instance (type: m5.xlarge, image: ami-0abc123...)\n2026-03-06 09:51:02 INFO  bootstrap.instance  instance i-0abc3f launched\n2026-03-06 09:51:05 INFO  bootstrap.instance  allocating elastic IP...\n2026-03-06 09:51:10 INFO  bootstrap.instance  elastic IP 10.0.1.15 allocated\n2026-03-06 09:51:12 INFO  bootstrap.instance  associating IP with instance...\n2026-03-06 09:51:15 INFO  bootstrap.ssh       waiting for SSH access on 10.0.1.15:22\n2026-03-06 09:52:30 INFO  bootstrap.ssh       SSH connection established\n2026-03-06 09:52:33 INFO  bootstrap.agent     installing Juju agent 3.6.5\n2026-03-06 09:53:17 INFO  bootstrap.agent     waiting for instance i-0abc3f to reach running state"
+              }
+            },
+            "test1": {
+              "description": "Fully bootstrapped controller (no bootstrap block)",
+              "handler": {
+                "component": "text",
+                "output": "test1:\n  details:\n    controller-uuid: f2a6d183-a4fd-40e5-8dcd-a3984b5538d5\n    api-endpoints: ['10.147.220.4:17070']\n    cloud: localhost\n    region: localhost\n    agent-version: 3.6.5\n    agent-git-commit: 33b026f4ab2a4fe371764b9c41993d3e1e90ddef\n    controller-model-version: 3.6.5\n    mongo-version: 4.4.24\n    ca-fingerprint: 12:0A:8A:67:87:40:1D:37:EC:FA:74:8E:86:35:96:9F\n    ca-cert: |\n      -----BEGIN CERTIFICATE-----\n      MIIEEjCCAnqgAwIBAgIUelz1uuf7h9TuCQOBhErkqml6yMYw...\n      -----END CERTIFICATE-----\n  controller-machines:\n    \"0\":\n      instance-id: juju-0ea06f-0\n  models:\n    controller:\n      model-uuid: b09f38f4-efe9-4a81-8e68-9035220ea06f\n      machine-count: 1\n    test1:\n      model-uuid: 3e8f6e93-c7c8-4fe7-8b9f-13a25de5a196\n    test5:\n      model-uuid: 3783d711-78f3-4b81-8f5b-9cb7eef4762c\n  current-model: admin/controller\n  account:\n    user: admin\n    access: superuser"
+              }
+            },
+            "test1 --bootstrap-logs": {
+              "description": "No active bootstrap for this controller",
+              "handler": {
+                "component": "text",
+                "output": "ERROR No active or recent bootstrap found for controller \"test1\"."
+              }
+            }
+          }
+        },
+
+        "bootstrap": {
+          "description": "[Path A] Bootstrap a new controller",
+          "example": ["juju bootstrap", "Start an interactive controller bootstrap"],
+          "handler": [
+            {
+              "component": "input",
+              "name": "controllerName",
+              "message": "Enter a name for the controller:",
+              "initial": "prod-eu"
+            },
+            {
+              "component": "select",
+              "name": "cloud",
+              "message": "Select a cloud:",
+              "choices": ["aws", "aws-china", "aws-gov", "azure", "google", "localhost"]
+            },
+            {
+              "component": "select",
+              "name": "region",
+              "message": "Select a region:",
+              "choices": ["eu-west-1", "eu-west-2", "us-east-1", "us-west-2", "localhost"]
+            },
+            {
+              "component": "confirm",
+              "name": "confirmBootstrap",
+              "message": "Bootstrap controller on the selected cloud/region?",
+              "initial": true
+            },
+            {
+              "component": "spinner",
+              "output": [
+                "Bootstrapping controller...",
+                "Creating VPC...",
+                "Launching instance...",
+                "Installing Juju agent...",
+                "Waiting for machine agent..."
+              ],
+              "duration": 5000,
+              "conclusion": "succeed"
+            },
+            {
+              "component": "text",
+              "output": "Bootstrap started.\n\nRun \"juju show-controller <name>\" to monitor progress.\nRun \"juju show-controller <name> --bootstrap-logs\" to view live logs."
+            }
+          ]
+        },
+
+        "stop-bootstrap": {
+          "description": "[Path A] Stop a controller bootstrap in progress",
+          "example": ["juju stop-bootstrap jaas-prod-eu", "Stop the bootstrap for jaas-prod-eu"],
+          "commands": {
+            "jaas-prod-eu": {
+              "description": "Stop bootstrap for jaas-prod-eu",
+              "handler": [
+                {
+                  "component": "text",
+                  "output": "Active bootstrap found:\n  Controller:   jaas-prod-eu\n  Cloud/Region: aws/eu-west-1\n  Status:       provisioning\n  Started:      2026-03-06T09:50:10Z"
+                },
+                {
+                  "component": "confirm",
+                  "name": "confirmStop",
+                  "message": "Stop this bootstrap? Partially-created cloud resources will be cleaned up.",
+                  "initial": false
+                },
+                {
+                  "component": "spinner",
+                  "output": ["Stopping bootstrap...", "Terminating instance...", "Cleaning up VPC resources...", "Removing controller record..."],
+                  "duration": 3000,
+                  "conclusion": "succeed"
+                },
+                {
+                  "component": "text",
+                  "output": "Bootstrap stopped. All cloud resources for \"jaas-prod-eu\" have been cleaned up."
+                }
+              ]
+            }
+          }
+        },
+
+        "jaas": {
+          "description": "[Path B] JAAS management — migrations and bootstraps as first-class objects",
+          "commands": {
+
+            "migrate-model": {
+              "description": "Initiate a model migration to another controller",
+              "example": ["juju jaas migrate-model", "Start an interactive model migration"],
+              "handler": [
+                {
+                  "component": "select",
+                  "name": "model",
+                  "message": "Select model to migrate:",
+                  "choices": [
+                    { "name": "my-db-model  (localhost/localhost)", "value": "my-db-model" },
+                    { "name": "frontend     (localhost/localhost)", "value": "frontend" },
+                    { "name": "test5        (localhost/localhost)", "value": "test5" }
+                  ]
+                },
+                {
+                  "component": "select",
+                  "name": "targetController",
+                  "message": "Select target controller:",
+                  "choices": [
+                    { "name": "jaas-prod-eu  (aws/eu-west-1)", "value": "jaas-prod-eu" },
+                    { "name": "jaas-dev-us   (gcp/us-east1)", "value": "jaas-dev-us" }
+                  ]
+                },
+                {
+                  "component": "confirm",
+                  "name": "confirmMigration",
+                  "message": "Migrate model to target controller?",
+                  "initial": true
+                },
+                {
+                  "component": "spinner",
+                  "output": ["Initiating migration...", "Running prechecks...", "Starting export..."],
+                  "duration": 3000,
+                  "conclusion": "succeed"
+                },
+                {
+                  "component": "text",
+                  "output": "Migration started.\nID: mig-a3f74b\n\nRun \"juju jaas migration mig-a3f74b\" to monitor progress.\nRun \"juju jaas migration-logs mig-a3f74b\" to view live logs."
+                }
+              ]
+            },
+
+            "stop-migration": {
+              "description": "Stop a model migration by ID",
+              "example": ["juju jaas stop-migration mig-a3f74b", "Stop migration mig-a3f74b"],
+              "commands": {
+                "mig-a3f74b": {
+                  "description": "Stop the active migration mig-a3f74b",
+                  "handler": [
+                    {
+                      "component": "text",
+                      "output": "Migration details:\n  ID:     mig-a3f74b\n  Model:  admin/my-db-model\n  Target: jaas-prod-eu\n  Status: syncing\n  Started: 2026-03-06T10:14:22Z"
+                    },
+                    {
+                      "component": "confirm",
+                      "name": "confirmStop",
+                      "message": "Stop migration mig-a3f74b? The model will remain on the source controller.",
+                      "initial": false
+                    },
+                    {
+                      "component": "spinner",
+                      "output": ["Stopping migration...", "Reverting model state...", "Cleaning up target controller..."],
+                      "duration": 2500,
+                      "conclusion": "succeed"
+                    },
+                    {
+                      "component": "text",
+                      "output": "Migration mig-a3f74b stopped.\nModel \"my-db-model\" remains on controller \"test1\".\n\nRun \"juju jaas migrations\" to see updated status."
+                    }
+                  ]
+                }
+              }
+            },
+
+            "migrations": {
+              "description": "List all migrations",
+              "example": ["juju jaas migrations", "List all model migrations"],
+              "handler": {
                 "component": "table",
                 "output": [
-                    ["CONTROLLER", "MODEL", "USER", "ACCESS", "CLOUD/REGION", "MODELS", "NODES", "HA", "VERSION"],
-                    ["localhost-localhost", "openstack-machines", "admin", "superuser", "localhost/localhost", "2", "2", "none", "3.6.5"],
-                    ["test1*", "controller", "admin", "superuser", "localhost/localhost", "4", "1", "none", "3.6.5"],
-                    ["aws-dev", "-", "admin", "superuser", "aws/us-east-1", "-", "-", "none", "(bootstrapping)"]
+                  ["ID", "Model", "Target Controller", "Status", "Started", "Message"],
+                  ["mig-a3f74b", "my-db-model", "jaas-prod-eu", "syncing", "2026-03-06T10:14:22Z", "replicating charm blobs (3/7)"],
+                  ["mig-e812cc", "test-app", "jaas-dev-us", "failed", "2026-03-05T08:30:00Z", "network timeout"]
                 ]
-            }
-        },
-        "show-model": {
-            "description": "Show details of a specific model (Path 1: Integrated approach)",
-            "positional": {
-                "model": {
-                    "description": "Name of the model",
-                    "type": "string",
-                    "demandOption": true
-                }
+              }
             },
-            "options": {
-                "show-log": {
-                    "description": "Show logs for the model",
-                    "type": "boolean"
+
+            "migration": {
+              "description": "Show details of a specific migration",
+              "example": [
+                ["juju jaas migration mig-a3f74b", "Show an active migration"],
+                ["juju jaas migration mig-e812cc", "Show a failed migration"]
+              ],
+              "commands": {
+                "mig-a3f74b": {
+                  "description": "Active migration (syncing)",
+                  "handler": {
+                    "component": "text",
+                    "output": "mig-a3f74b:\n  model: admin/my-db-model\n  model-uuid: 7a12bf03-44e1-4c9a-9e77-2f8bc3a1d4e0\n  source-controller: test1\n  target-controller: jaas-prod-eu\n  status: syncing\n  phase: replicating charm blobs (3/7)\n  started: \"2026-03-06T10:14:22Z\"\n  updated: \"2026-03-06T10:18:47Z\""
+                  }
+                },
+                "mig-e812cc": {
+                  "description": "Failed migration",
+                  "handler": {
+                    "component": "text",
+                    "output": "mig-e812cc:\n  model: admin/test-app\n  model-uuid: 9c894959-0c35-4845-889e-f041f2140748\n  source-controller: test1\n  target-controller: jaas-dev-us\n  status: failed\n  phase: uploading\n  started: \"2026-03-05T08:30:00Z\"\n  updated: \"2026-03-05T08:34:12Z\"\n  error: \"cannot connect to target controller: network timeout after 30s\"\n  retry-count: 3"
+                  }
                 }
+              }
             },
-            "handler": {
-                "component": "conditional",
-                "output": {
-                    "if": "args['show-log'] === true",
-                    "then": {
-                        "component": "text",
-                        "output": "10:48:17 INFO  juju.cmd supercommand.go:56 running juju [3.6.14 b08ad63ae633a35dbfda995a757dcf9db4e11160 gc go1.25.6]\n10:48:17 INFO  juju.juju api.go:90 connecting to API addresses: [10.147.220.4:17070]\n10:48:18 INFO  migration step: export-data completed\n10:48:19 INFO  migration step: transfer-state running...\n10:48:19 INFO  cmd supercommand.go:578 command finished"
-                    },
-                    "else": {
-                        "component": "text",
-                        "output": "test5:\n  name: admin/test5\n  model-uuid: 3783d711-78f3-4b81-8f5b-9cb7eef4762c\n  controller-name: test1\n  life: migrating\n  status:\n    current: unavailable\n    since: \"2026-03-06\"\n  migration:\n    target-controller: aws-prod\n    status: running\n    start-time: 2026-03-06T11:45:00Z"
-                    }
+
+            "migration-logs": {
+              "description": "View logs for a specific migration",
+              "example": [
+                ["juju jaas migration-logs mig-a3f74b", "View logs for an active migration"],
+                ["juju jaas migration-logs mig-e812cc", "View logs for a failed migration"]
+              ],
+              "commands": {
+                "mig-a3f74b": {
+                  "description": "Logs for active migration mig-a3f74b (syncing)",
+                  "handler": {
+                    "component": "text",
+                    "output": "Showing logs for migration mig-a3f74b...\n\n2026-03-06 10:14:22 INFO  migration.worker    starting migration of model \"my-db-model\" to controller \"jaas-prod-eu\"\n2026-03-06 10:14:23 INFO  migration.worker    running prechecks on source controller\n2026-03-06 10:14:25 INFO  migration.precheck  verifying model stability: OK\n2026-03-06 10:14:26 INFO  migration.precheck  verifying agent versions: OK (3.6.5)\n2026-03-06 10:14:27 INFO  migration.precheck  verifying target controller connectivity: OK\n2026-03-06 10:14:28 INFO  migration.worker    all prechecks passed — beginning export\n2026-03-06 10:14:30 INFO  migration.export    exporting model description\n2026-03-06 10:14:35 INFO  migration.export    export complete (423 entities)\n2026-03-06 10:15:02 INFO  migration.sync      uploading tools: 3.6.5-ubuntu-amd64\n2026-03-06 10:15:18 INFO  migration.sync      tools upload complete\n2026-03-06 10:15:20 INFO  migration.sync      syncing charm blobs\n2026-03-06 10:16:01 INFO  migration.sync      replicated charm: ch:postgresql (1/7)\n2026-03-06 10:16:44 INFO  migration.sync      replicated charm: ch:pgbouncer (2/7)\n2026-03-06 10:18:47 INFO  migration.sync      replicated charm: ch:ubuntu (3/7)"
+                  }
+                },
+                "mig-e812cc": {
+                  "description": "Logs for failed migration mig-e812cc",
+                  "handler": {
+                    "component": "text",
+                    "output": "Showing logs for migration mig-e812cc...\n\n2026-03-05 08:30:00 INFO  migration.worker    starting migration of model \"test-app\" to controller \"jaas-dev-us\"\n2026-03-05 08:30:01 INFO  migration.worker    running prechecks on source controller\n2026-03-05 08:30:03 INFO  migration.precheck  verifying model stability: OK\n2026-03-05 08:30:04 INFO  migration.precheck  verifying agent versions: OK (3.6.5)\n2026-03-05 08:30:05 INFO  migration.precheck  verifying target controller connectivity: OK\n2026-03-05 08:30:06 INFO  migration.worker    all prechecks passed — beginning export\n2026-03-05 08:30:08 INFO  migration.export    exporting model description\n2026-03-05 08:30:12 INFO  migration.export    export complete (187 entities)\n2026-03-05 08:30:30 INFO  migration.sync      uploading tools: 3.6.5-ubuntu-amd64\n2026-03-05 08:30:45 INFO  migration.sync      tools upload complete\n2026-03-05 08:30:47 INFO  migration.sync      syncing charm blobs\n2026-03-05 08:31:22 INFO  migration.sync      replicated charm: ch:nginx (1/3)\n2026-03-05 08:32:01 WARN  migration.sync      connection to target controller interrupted, retrying (1/3)\n2026-03-05 08:32:32 WARN  migration.sync      connection to target controller interrupted, retrying (2/3)\n2026-03-05 08:33:03 WARN  migration.sync      connection to target controller interrupted, retrying (3/3)\n2026-03-05 08:34:12 ERROR migration.worker    migration failed: cannot connect to target controller: network timeout after 30s\n2026-03-05 08:34:12 INFO  migration.worker    initiating revert — restoring model on source controller\n2026-03-05 08:34:15 INFO  migration.worker    revert complete — model \"test-app\" restored on \"test1\""
+                  }
                 }
-            }
-        },
-        "jaas": {
-            "description": "Juju as a Service commands (Path 2: Standalone approach)",
-            "commands": {
-                "migrations": {
-                    "description": "List all active and recent migrations",
-                    "handler": {
-                        "component": "table",
-                        "output": [
-                            ["MODEL", "STATUS", "SOURCE", "TARGET", "START-TIME", "NOTES"],
-                            ["auth-prod", "running", "aws-dev", "aws-prod", "2026-03-05T14:10:00Z", "-"],
-                            ["qa-test", "failed", "lxd-1", "lxd-2", "2026-03-06T09:24:20Z", "cannot establish the connection"]
-                        ]
-                    }
+              }
+            },
+
+            "bootstrap-controller": {
+              "description": "Initiate a controller bootstrap",
+              "example": ["juju jaas bootstrap-controller", "Start an interactive controller bootstrap"],
+              "handler": [
+                {
+                  "component": "input",
+                  "name": "controllerName",
+                  "message": "Enter a name for the Controller:",
+                  "initial": "prod-eu"
                 },
-                "migration": {
-                    "description": "Show details for a specific migration",
-                    "positional": {
-                        "id": {
-                            "description": "Migration UUID",
-                            "type": "string",
-                            "demandOption": true
-                        }
-                    },
-                    "options": {
-                        "show-log": {
-                            "description": "Stream logs for this migration",
-                            "type": "boolean"
-                        }
-                    },
-                    "handler": {
-                        "component": "conditional",
-                        "output": {
-                            "if": "args['show-log'] === true",
-                            "then": {
-                                "component": "text",
-                                "output": "10:48:17 INFO  juju.cmd supercommand.go:56 running juju [3.6.14 b08ad63ae633a35dbfda995a757dcf9db4e11160 gc go1.25.6]\n10:48:17 INFO step: export-data completed\n10:48:19 INFO step: transfer-state running..."
-                            },
-                            "else": {
-                                "component": "text",
-                                "output": "migration:\n  uuid: m-8f5b-9cb7eef4762c\n  model-name: admin/test5\n  source-controller: test1\n  target-controller: aws-prod\n  status: running\n  start-time: 2026-03-06T11:45:00Z\n  initiator: admin\n  steps:\n    - step: export-data\n      status: completed\n    - step: transfer-state\n      status: running"
-                            }
-                        }
-                    }
+                {
+                  "component": "select",
+                  "name": "cloud",
+                  "message": "Select a cloud:",
+                  "choices": ["aws", "aws-china", "aws-gov", "azure", "google", "localhost"]
                 },
-                "bootstraps": {
-                    "description": "List all active bootstraps",
-                    "handler": {
-                        "component": "table",
-                        "output": [
-                            ["CONTROLLER", "STATUS", "CLOUD/REGION", "VERSION", "START-TIME", "NOTES"],
-                            ["qa-lxd-3", "bootstrapping", "localhost", "3.6.14", "2026-03-06T11:45:00Z", "-"],
-                            ["aws-dev-2", "provisioning", "aws/us-east-1", "3.6.14", "2026-03-06T11:50:00Z", "allocating machines"]
-                        ]
-                    }
+                {
+                  "component": "select",
+                  "name": "region",
+                  "message": "Select a region:",
+                  "choices": ["eu-west-1", "eu-west-2", "us-east-1", "us-west-2", "localhost"]
                 },
-                "bootstrap": {
-                    "description": "Show details for a specific bootstrap",
-                    "positional": {
-                        "id": {
-                            "description": "Bootstrap UUID",
-                            "type": "string",
-                            "demandOption": true
-                        }
-                    },
-                    "handler": {
-                        "component": "text",
-                        "output": "bootstrap:\n  uuid: b-9d8b12a4-7f3e-412d-a19b-c23d4e5f6g7h\n  controller-name: qa-lxd-3\n  cloud-region: localhost\n  version: 3.6.14\n  status: bootstrapping\n  start-time: 2026-03-06T11:45:00Z\n  initiator: admin\n  steps:\n    - step: requesting-machine\n      status: completed\n    - step: installing-agent\n      status: running"
-                    }
+                {
+                  "component": "confirm",
+                  "name": "confirmBootstrap",
+                  "message": "Bootstrap controller on selected cloud/region?",
+                  "initial": true
+                },
+                {
+                  "component": "spinner",
+                  "output": [
+                    "Bootstrapping controller...",
+                    "Creating VPC...",
+                    "Launching instance...",
+                    "Installing Juju agent...",
+                    "Waiting for machine agent..."
+                  ],
+                  "duration": 5000,
+                  "conclusion": "succeed"
+                },
+                {
+                  "component": "text",
+                  "output": "Bootstrap started.\nID: boot-7d29af\n\nRun \"juju jaas bootstrap boot-7d29af\" to monitor progress.\nRun \"juju jaas bootstrap-logs boot-7d29af\" to view live logs."
                 }
+              ]
+            },
+
+            "stop-bootstrap": {
+              "description": "Stop a controller bootstrap by ID",
+              "example": ["juju jaas stop-bootstrap boot-7d29af", "Stop bootstrap boot-7d29af"],
+              "commands": {
+                "boot-7d29af": {
+                  "description": "Stop bootstrap boot-7d29af",
+                  "handler": [
+                    {
+                      "component": "text",
+                      "output": "Bootstrap details:\n  ID:           boot-7d29af\n  Controller:   prod-eu\n  Cloud/Region: aws/eu-west-1\n  Status:       provisioning\n  Started:      2026-03-06T09:50:10Z"
+                    },
+                    {
+                      "component": "confirm",
+                      "name": "confirmStop",
+                      "message": "Stop bootstrap boot-7d29af? Partially-created cloud resources will be cleaned up.",
+                      "initial": false
+                    },
+                    {
+                      "component": "spinner",
+                      "output": ["Stopping bootstrap...", "Terminating instance...", "Cleaning up VPC resources...", "Removing controller record..."],
+                      "duration": 3000,
+                      "conclusion": "succeed"
+                    },
+                    {
+                      "component": "text",
+                      "output": "Bootstrap boot-7d29af stopped.\nAll cloud resources for \"prod-eu\" have been cleaned up.\n\nRun \"juju jaas bootstraps\" to see updated status."
+                    }
+                  ]
+                }
+              }
+            },
+
+            "bootstraps": {
+              "description": "List all controller bootstraps",
+              "example": ["juju jaas bootstraps", "List all controller bootstraps"],
+              "handler": {
+                "component": "table",
+                "output": [
+                  ["ID", "Controller", "Cloud/Region", "Status", "Started", "Message"],
+                  ["boot-7d29af", "prod-eu", "aws/eu-west-1", "provisioning", "2026-03-06T09:50:10Z", "creating instance"],
+                  ["boot-1bc44e", "dev-us", "gcp/us-east1", "active", "2026-03-05T14:00:00Z", "-"]
+                ]
+              }
+            },
+
+            "bootstrap": {
+              "description": "Show details of a specific bootstrap",
+              "example": ["juju jaas bootstrap boot-7d29af", "Show bootstrap details"],
+              "commands": {
+                "boot-7d29af": {
+                  "description": "Bootstrap in progress (provisioning)",
+                  "handler": {
+                    "component": "text",
+                    "output": "boot-7d29af:\n  controller: prod-eu\n  controller-uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567890\n  cloud: aws\n  region: eu-west-1\n  status: provisioning\n  phase: creating-instance\n  started: \"2026-03-06T09:50:10Z\"\n  updated: \"2026-03-06T09:53:17Z\"\n  message: waiting for instance i-0abc3f to reach running state"
+                  }
+                }
+              }
+            },
+
+            "bootstrap-logs": {
+              "description": "View logs for a specific bootstrap",
+              "example": ["juju jaas bootstrap-logs boot-7d29af", "View bootstrap logs"],
+              "commands": {
+                "boot-7d29af": {
+                  "description": "Logs for bootstrap boot-7d29af",
+                  "handler": {
+                    "component": "text",
+                    "output": "Showing logs for bootstrap boot-7d29af...\n\n2026-03-06 09:50:10 INFO  bootstrap           starting bootstrap on aws/eu-west-1\n2026-03-06 09:50:11 INFO  bootstrap           validating cloud credentials\n2026-03-06 09:50:13 INFO  bootstrap           credentials valid\n2026-03-06 09:50:15 INFO  bootstrap.network   creating VPC vpc-0af3b7c...\n2026-03-06 09:50:22 INFO  bootstrap.network   VPC created\n2026-03-06 09:50:23 INFO  bootstrap.network   creating subnet subnet-0e4a2d1...\n2026-03-06 09:50:28 INFO  bootstrap.network   subnet created\n2026-03-06 09:50:29 INFO  bootstrap.network   creating security group sg-0bc8f42...\n2026-03-06 09:50:33 INFO  bootstrap.network   security group created\n2026-03-06 09:50:35 INFO  bootstrap.instance  launching instance (type: m5.xlarge, image: ami-0abc123...)\n2026-03-06 09:51:02 INFO  bootstrap.instance  instance i-0abc3f launched\n2026-03-06 09:51:05 INFO  bootstrap.instance  allocating elastic IP...\n2026-03-06 09:51:10 INFO  bootstrap.instance  elastic IP 10.0.1.15 allocated\n2026-03-06 09:51:12 INFO  bootstrap.instance  associating IP with instance...\n2026-03-06 09:51:15 INFO  bootstrap.ssh       waiting for SSH access on 10.0.1.15:22\n2026-03-06 09:52:30 INFO  bootstrap.ssh       SSH connection established\n2026-03-06 09:52:33 INFO  bootstrap.agent     installing Juju agent 3.6.5\n2026-03-06 09:53:17 INFO  bootstrap.agent     waiting for instance i-0abc3f to reach running state"
+                  }
+                }
+              }
             }
+
+          }
         }
+
+      }
     }
+  }
 }
