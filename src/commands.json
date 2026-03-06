@@ -74,11 +74,24 @@
               "output": "Fetching tasks...",
               "duration": 1000,
               "conclusion": "succeed"
+            },
+            {
+              "component": "table",
+              "output": [
+                [
+                  "Header1",
+                  "Header2"
+                ],
+                [
+                  "Value1",
+                  "Value2"
+                ]
+              ]
             }
           ],
           "else": {
             "component": "text",
-            "output": ""
+            "output": "Please log in to view tasks."
           }
         }
       }
