@@ -5,18 +5,83 @@
   },
   "commands": {
     "login": {
-      "description": "Check if adult",
+      "description": "Log in to TaskTrack",
       "handler": [
         {
-          "component": "text",
-          "output": "YOU NEED TO BE 18!!!"
+          "component": "input",
+          "name": "username",
+          "message": "Enter your username:"
         },
         {
-          "component": "input",
-          "name": "checkAge",
-          "message": "Enter age:"
+          "component": "password",
+          "name": "password",
+          "message": "Enter your password:"
+        },
+        {
+          "component": "spinner",
+          "output": "[\"Logging in\",\"Please wait\",\"Verifying credentials\"]",
+          "duration": 2000,
+          "conclusion": "succeed"
+        },
+        {
+          "component": "variable",
+          "output": {
+            "isLoggedIn": "true"
+          }
+        },
+        {
+          "component": "text",
+          "output": "Welcome, {{username}}! You are now logged in."
         }
       ]
+    },
+    "logout": {
+      "description": "Log out from TaskTrack",
+      "handler": {
+        "component": "conditional",
+        "output": {
+          "if": "isLoggedIn == 'true'",
+          "then": [
+            {
+              "component": "spinner",
+              "output": "Logging out...",
+              "duration": 1000,
+              "conclusion": "succeed"
+            },
+            {
+              "component": "variable",
+              "output": {
+                "username": ""
+              }
+            }
+          ],
+          "else": {
+            "component": "text",
+            "output": "You are not currently logged in."
+          }
+        }
+      }
+    },
+    "list": {
+      "description": "List all tasks",
+      "handler": {
+        "component": "conditional",
+        "output": {
+          "if": "isLoggedIn == 'true'",
+          "then": [
+            {
+              "component": "spinner",
+              "output": "Fetching tasks...",
+              "duration": 1000,
+              "conclusion": "succeed"
+            }
+          ],
+          "else": {
+            "component": "text",
+            "output": ""
+          }
+        }
+      }
     }
   }
 }
