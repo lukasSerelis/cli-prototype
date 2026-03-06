@@ -1,5 +1,5 @@
 {
-  "welcome": "Juju CLI Prototype — Migration & Bootstrap Observability\n\nThis prototype demonstrates two design approaches for managing\nmigration and bootstrap lifecycle operations.\n\nPATH A — Integrated into existing commands:\n\n  Migration:\n    start   juju migrate my-db-model\n    stop    juju abort-migration\n    list    juju models\n    view    juju show-model my-db-model\n            juju show-model my-db-model-failed\n            juju show-model frontend                 (baseline)\n    logs    juju migration-logs\n\n  Bootstrap:\n    start   juju bootstrap\n    stop    juju abort-bootstrap jaas-prod-eu\n    list    juju controllers\n    view    juju show-controller jaas-prod-eu\n            juju show-controller test1               (baseline)\n    logs    juju bootstrap-logs jaas-prod-eu\n\nPATH B — First-class objects:\n\n  Migration:\n    start   juju jaas migrate-model\n    stop    juju jaas abort-migration mig-a3f74b\n    list    juju jaas migrations\n    view    juju jaas migration mig-a3f74b\n            juju jaas migration mig-e812cc           (failed)\n    logs    juju jaas migration-logs mig-a3f74b\n            juju jaas migration-logs mig-e812cc      (failed)\n\n  Bootstrap:\n    start   juju jaas bootstrap-controller\n    stop    juju jaas abort-bootstrap boot-7d29af\n    list    juju jaas bootstraps\n    view    juju jaas bootstrap boot-7d29af\n    logs    juju jaas bootstrap-logs boot-7d29af\n\nType 'juju --help' for command help.",
+  "welcome": "Juju CLI Prototype — Migration & Bootstrap Observability\n\nThis prototype demonstrates two design approaches for managing\nmigration and bootstrap lifecycle operations.\n\nPATH A — Integrated into existing commands:\n\n  Migration:\n    start   juju migrate my-db-model\n    stop    juju stop-migration\n    list    juju models\n    view    juju show-model my-db-model\n            juju show-model my-db-model-failed\n            juju show-model frontend                 (baseline)\n    logs    juju migration-logs\n\n  Bootstrap:\n    start   juju bootstrap\n    stop    juju stop-bootstrap jaas-prod-eu\n    list    juju controllers\n    view    juju show-controller jaas-prod-eu\n            juju show-controller test1               (baseline)\n    logs    juju bootstrap-logs jaas-prod-eu\n\nPATH B — First-class objects:\n\n  Migration:\n    start   juju jaas migrate-model\n    stop    juju jaas stop-migration mig-a3f74b\n    list    juju jaas migrations\n    view    juju jaas migration mig-a3f74b\n            juju jaas migration mig-e812cc           (failed)\n    logs    juju jaas migration-logs mig-a3f74b\n            juju jaas migration-logs mig-e812cc      (failed)\n\n  Bootstrap:\n    start   juju jaas bootstrap-controller\n    stop    juju jaas stop-bootstrap boot-7d29af\n    list    juju jaas bootstraps\n    view    juju jaas bootstrap boot-7d29af\n    logs    juju jaas bootstrap-logs boot-7d29af\n\nType 'juju --help' for command help.",
   "variables": {},
   "commands": {
     "juju": {
@@ -96,9 +96,9 @@
           }
         },
 
-        "abort-migration": {
-          "description": "[Path A] Abort the active migration on the current model",
-          "example": ["juju abort-migration", "Abort the active migration for the current model"],
+        "stop-migration": {
+          "description": "[Path A] Stop the active migration on the current model",
+          "example": ["juju stop-migration", "Stop the active migration for the current model"],
           "handler": [
             {
               "component": "text",
@@ -106,19 +106,19 @@
             },
             {
               "component": "confirm",
-              "name": "confirmAbort",
-              "message": "Abort this migration? The model will remain on the source controller.",
+              "name": "confirmStop",
+              "message": "Stop this migration? The model will remain on the source controller.",
               "initial": false
             },
             {
               "component": "spinner",
-              "output": ["Aborting migration...", "Reverting model state...", "Cleaning up target controller..."],
+              "output": ["Stopping migration...", "Reverting model state...", "Cleaning up target controller..."],
               "duration": 2500,
               "conclusion": "succeed"
             },
             {
               "component": "text",
-              "output": "Migration aborted. Model \"my-db-model\" remains on controller \"test1\"."
+              "output": "Migration stopped. Model \"my-db-model\" remains on controller \"test1\"."
             }
           ]
         },
@@ -222,12 +222,12 @@
           ]
         },
 
-        "abort-bootstrap": {
-          "description": "[Path A] Abort a controller bootstrap in progress",
-          "example": ["juju abort-bootstrap jaas-prod-eu", "Abort the bootstrap for jaas-prod-eu"],
+        "stop-bootstrap": {
+          "description": "[Path A] Stop a controller bootstrap in progress",
+          "example": ["juju stop-bootstrap jaas-prod-eu", "Stop the bootstrap for jaas-prod-eu"],
           "commands": {
             "jaas-prod-eu": {
-              "description": "Abort bootstrap for jaas-prod-eu",
+              "description": "Stop bootstrap for jaas-prod-eu",
               "handler": [
                 {
                   "component": "text",
@@ -235,19 +235,19 @@
                 },
                 {
                   "component": "confirm",
-                  "name": "confirmAbort",
-                  "message": "Abort this bootstrap? Partially-created cloud resources will be cleaned up.",
+                  "name": "confirmStop",
+                  "message": "Stop this bootstrap? Partially-created cloud resources will be cleaned up.",
                   "initial": false
                 },
                 {
                   "component": "spinner",
-                  "output": ["Aborting bootstrap...", "Terminating instance...", "Cleaning up VPC resources...", "Removing controller record..."],
+                  "output": ["Stopping bootstrap...", "Terminating instance...", "Cleaning up VPC resources...", "Removing controller record..."],
                   "duration": 3000,
                   "conclusion": "succeed"
                 },
                 {
                   "component": "text",
-                  "output": "Bootstrap aborted. All cloud resources for \"jaas-prod-eu\" have been cleaned up."
+                  "output": "Bootstrap stopped. All cloud resources for \"jaas-prod-eu\" have been cleaned up."
                 }
               ]
             }
@@ -314,12 +314,12 @@
               ]
             },
 
-            "abort-migration": {
-              "description": "Abort a model migration by ID",
-              "example": ["juju jaas abort-migration mig-a3f74b", "Abort migration mig-a3f74b"],
+            "stop-migration": {
+              "description": "Stop a model migration by ID",
+              "example": ["juju jaas stop-migration mig-a3f74b", "Stop migration mig-a3f74b"],
               "commands": {
                 "mig-a3f74b": {
-                  "description": "Abort the active migration mig-a3f74b",
+                  "description": "Stop the active migration mig-a3f74b",
                   "handler": [
                     {
                       "component": "text",
@@ -327,19 +327,19 @@
                     },
                     {
                       "component": "confirm",
-                      "name": "confirmAbort",
-                      "message": "Abort migration mig-a3f74b? The model will remain on the source controller.",
+                      "name": "confirmStop",
+                      "message": "Stop migration mig-a3f74b? The model will remain on the source controller.",
                       "initial": false
                     },
                     {
                       "component": "spinner",
-                      "output": ["Aborting migration...", "Reverting model state...", "Cleaning up target controller..."],
+                      "output": ["Stopping migration...", "Reverting model state...", "Cleaning up target controller..."],
                       "duration": 2500,
                       "conclusion": "succeed"
                     },
                     {
                       "component": "text",
-                      "output": "Migration mig-a3f74b aborted.\nModel \"my-db-model\" remains on controller \"test1\".\n\nRun \"juju jaas migrations\" to see updated status."
+                      "output": "Migration mig-a3f74b stopped.\nModel \"my-db-model\" remains on controller \"test1\".\n\nRun \"juju jaas migrations\" to see updated status."
                     }
                   ]
                 }
@@ -454,12 +454,12 @@
               ]
             },
 
-            "abort-bootstrap": {
-              "description": "Abort a controller bootstrap by ID",
-              "example": ["juju jaas abort-bootstrap boot-7d29af", "Abort bootstrap boot-7d29af"],
+            "stop-bootstrap": {
+              "description": "Stop a controller bootstrap by ID",
+              "example": ["juju jaas stop-bootstrap boot-7d29af", "Stop bootstrap boot-7d29af"],
               "commands": {
                 "boot-7d29af": {
-                  "description": "Abort bootstrap boot-7d29af",
+                  "description": "Stop bootstrap boot-7d29af",
                   "handler": [
                     {
                       "component": "text",
@@ -467,19 +467,19 @@
                     },
                     {
                       "component": "confirm",
-                      "name": "confirmAbort",
-                      "message": "Abort bootstrap boot-7d29af? Partially-created cloud resources will be cleaned up.",
+                      "name": "confirmStop",
+                      "message": "Stop bootstrap boot-7d29af? Partially-created cloud resources will be cleaned up.",
                       "initial": false
                     },
                     {
                       "component": "spinner",
-                      "output": ["Aborting bootstrap...", "Terminating instance...", "Cleaning up VPC resources...", "Removing controller record..."],
+                      "output": ["Stopping bootstrap...", "Terminating instance...", "Cleaning up VPC resources...", "Removing controller record..."],
                       "duration": 3000,
                       "conclusion": "succeed"
                     },
                     {
                       "component": "text",
-                      "output": "Bootstrap boot-7d29af aborted.\nAll cloud resources for \"prod-eu\" have been cleaned up.\n\nRun \"juju jaas bootstraps\" to see updated status."
+                      "output": "Bootstrap boot-7d29af stopped.\nAll cloud resources for \"prod-eu\" have been cleaned up.\n\nRun \"juju jaas bootstraps\" to see updated status."
                     }
                   ]
                 }
