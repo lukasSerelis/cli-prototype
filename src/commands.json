@@ -1,5 +1,5 @@
 {
-  "welcome": "Juju CLI Prototype — Migration & Bootstrap Observability\n\nThis prototype demonstrates two design approaches for managing\nmigration and bootstrap lifecycle operations.\n\nPATH A — Integrated into existing commands:\n\n  Migration:\n    start   juju migrate my-db-model\n    stop    juju stop-migration mig-a3f74b\n    list    juju models\n    view    juju show-model my-db-model\n            juju show-model my-db-model-failed\n            juju show-model frontend                 (baseline)\n    logs    juju show-model my-db-model --log\n\n  Bootstrap:\n    start   juju bootstrap\n    stop    juju stop-bootstrap boot-7d29af\n    list    juju controllers\n    view    juju show-controller jaas-prod-eu\n            juju show-controller test1               (baseline)\n    logs    juju show-controller jaas-prod-eu bootstrap-logs\n\nPATH B — First-class objects:\n\n  Migration:\n    start   juju jaas migrate-model\n    stop    juju jaas stop-migration mig-a3f74b\n    list    juju jaas migrations\n    view    juju jaas migration mig-a3f74b\n            juju jaas migration mig-e812cc           (failed)\n    logs    juju jaas migration-logs mig-a3f74b\n            juju jaas migration-logs mig-e812cc      (failed)\n\n  Bootstrap:\n    start   juju jaas bootstrap-controller\n    stop    juju jaas stop-bootstrap boot-7d29af\n    list    juju jaas bootstraps\n    view    juju jaas bootstrap boot-7d29af\n    logs    juju jaas bootstrap-logs boot-7d29af\n\nType 'juju --help' for command help.",
+  "welcome": "Juju CLI Prototype — Migration & Bootstrap Observability\n\nThis prototype demonstrates two design approaches for managing\nmigration and bootstrap lifecycle operations.\n\nPATH A — Integrated into existing commands:\n\n  Migration:\n    start   juju migrate my-db-model\n    stop    juju stop-migration mig-a3f74b\n    list    juju models\n    view    juju show-model my-db-model\n            juju show-model my-db-model-failed\n            juju show-model frontend                 (baseline)\n    logs    juju show-model my-db-model debug\n\n  Bootstrap:\n    start   juju bootstrap\n    stop    juju stop-bootstrap boot-7d29af\n    list    juju controllers\n    view    juju show-controller jaas-prod-eu\n            juju show-controller test1               (baseline)\n    logs    juju show-controller jaas-prod-eu bootstrap-logs\n\nPATH B — First-class objects:\n\n  Migration:\n    start   juju jaas migrate-model\n    stop    juju jaas stop-migration mig-a3f74b\n    list    juju jaas migrations\n    view    juju jaas migration mig-a3f74b\n            juju jaas migration mig-e812cc           (failed)\n    logs    juju jaas migration-logs mig-a3f74b\n            juju jaas migration-logs mig-e812cc      (failed)\n\n  Bootstrap:\n    start   juju jaas bootstrap-controller\n    stop    juju jaas stop-bootstrap boot-7d29af\n    list    juju jaas bootstraps\n    view    juju jaas bootstrap boot-7d29af\n    logs    juju jaas bootstrap-logs boot-7d29af\n\nType 'juju --help' for command help.",
   "variables": {},
   "commands": {
     "juju": {
@@ -28,10 +28,10 @@
         },
 
         "show-model": {
-          "description": "[Path A] Show model details. Use '--log' subcommand to view migration logs.",
+          "description": "[Path A] Show model details. Append 'debug' to view migration logs.",
           "example": [
             ["juju show-model my-db-model", "Show a model with an active migration"],
-            ["juju show-model my-db-model --log", "Show migration logs for a model"],
+            ["juju show-model my-db-model debug", "Show migration logs for a model"],
             ["juju show-model my-db-model-failed", "Show a model with a failed migration"],
             ["juju show-model frontend", "Show a model with no migration"]
           ],
@@ -45,7 +45,7 @@
                 }
               ],
               "commands": {
-                "--log": {
+                "debug": {
                   "description": "Show migration logs for my-db-model",
                   "handler": [
                     {
@@ -65,7 +65,7 @@
                 }
               ],
               "commands": {
-                "--log": {
+                "debug": {
                   "description": "Show migration logs for my-db-model (failed)",
                   "handler": [
                     {
@@ -112,7 +112,7 @@
                 },
                 {
                   "component": "text",
-                  "output": "Migration of \"my-db-model\" started.\nMigration ID: mig-a3f74b\n\nRun \"juju show-model my-db-model\" to monitor progress.\nRun \"juju show-model my-db-model --log\" to view logs.\nRun \"juju stop-migration mig-a3f74b\" to cancel."
+                  "output": "Migration of \"my-db-model\" started.\nMigration ID: mig-a3f74b\n\nRun \"juju show-model my-db-model\" to monitor progress.\nRun \"juju show-model my-db-model debug\" to view logs.\nRun \"juju stop-migration mig-a3f74b\" to cancel."
                 }
               ]
             }
